@@ -5,7 +5,8 @@ library(purrr)
 # Create a list for health rank data 
 health_rank_data_list <- list()
 
-# List of Excel file paths
+# List of Excel file path
+# I will replace these with github file pays once I convert the excel sheets to .csv
 health_rank_filepaths <- c(
   "/Users/mardielings/Desktop/Data Analytics/project/raw_data/2018 County Health Rankings Oregon Data.xls",
   "/Users/mardielings/Desktop/Data Analytics/project/raw_data/2019 County Health Rankings Oregon Data.xls",
@@ -72,6 +73,7 @@ for (df_name in data_frame_names) {
 
 # Combine the 2018 and 2019  
 combine_2018_2019 <- bind_rows(health_rank2018, health_rank2019)
+View(combine_2018_2019)
 
 # rename columns to be able to merge
 combine_2018_2019 <- combine_2018_2019 |>
@@ -80,24 +82,50 @@ combine_2018_2019 <- combine_2018_2019 |>
     percent_fair_poor_health = x..fair.poor,
     phys_unhealthy_days = physically.unhealthy.days,
     mentally_unhealthy_days = mentally.unhealthy.days,
-    violent_crime_rate = violent_crime_rate,
+    preventable_hosp_rate = preventable.hosp..rate,
+    percent_smokers = x..smokers,
+    low_birthweight = x..lbw,
+    excessive_drinking = x..excessive.drinking,
+    mental_health_providers = x..mental.health.providers,
+    mental_health_providers_ratio = mhp.ratio,
+    percent_unemployed = x..unemployed,
+    violent_crime_rate = violent.crime.rate,
     income_ratio = income.ratio,
-    percent_child_poverty = x..children.in.poverty
+    eighty_percentile_income = x80th.percentile.income,
+    twenty_percentile_income = x20th.percentile.income,
+    labor_force = labor.force, 
+    percent_child_poverty = x..children.in.poverty,
+    
   )
 
 
 # filter selected variables
 filtered_2018_2019 <- combine_2018_2019 |>
   select(
-    fips, year, state, county,   
-         yrs_potential_life_lost_rate,
-         percent_fair_poor_health,
-         phys_unhealthy_days,
-         mentally_unhealthy_days,
-         violent_crime_rate,
-         income_ratio,
-         percent_child_poverty
+    fips, 
+    year, 
+    state, 
+    county,   
+    yrs_potential_life_lost_rate,
+    percent_fair_poor_health,
+    phys_unhealthy_days,
+    mentally_unhealthy_days,
+    preventable_hosp_rate,
+    percent_smokers,
+    low_birthweight,
+    excessive_drinking,
+    mental_health_providers,
+    mental_health_providers_ratio,
+    percent_unemployed,
+    violent_crime_rate,
+    income_ratio,
+    eighty_percentile_income,
+    twenty_percentile_income,
+    labor_force,
+    percent_child_poverty
     )
+View(filtered_2018_2019)
+
 
 # Combine 2020-2023 data frames
 combine_2020_2023 <- bind_rows(health_rank2020, health_rank2021, health_rank2022, health_rank2023)
@@ -110,26 +138,70 @@ combine_2020_2023 <- combine_2020_2023 |>
     phys_unhealthy_days = average.number.of.physically.unhealthy.days,
     mentally_unhealthy_days = average.number.of.mentally.unhealthy.days,
     violent_crime_rate = violent.crime.rate,
+    percent_child_poverty = x..children.in.poverty,
+    preventable_hosp_rate = preventable.hospitalization.rate,
+    percent_smokers = x..smokers,
+    low_birthweight = x..low.birthweight,
+    excessive_drinking = x..excessive.drinking,
+    mental_health_providers = x..mental.health.providers,
+    mental_health_providers_ratio = mental.health.provider.ratio,
+    percent_unemployed = x..unemployed,
+    eighty_percentile_income = x80th.percentile.income,
+    twenty_percentile_income = x20th.percentile.income,
     income_ratio = income.ratio,
-    percent_child_poverty = x..children.in.poverty
+    labor_force = labor.force, 
   )
 
+View(combine_2020_2023)
 
-# filter selected variables
+# Filter selected variables
 filtered_2020_2023 <- combine_2020_2023 |>
   select(  
-    fips, year, state, county,   
-           yrs_potential_life_lost_rate,
-           percent_fair_poor_health,
-           phys_unhealthy_days,
-           mentally_unhealthy_days,
-           violent_crime_rate,
-           income_ratio,
-           percent_child_poverty
+    fips,
+    year, 
+    state, 
+    county,   
+    yrs_potential_life_lost_rate,
+    percent_fair_poor_health,
+    phys_unhealthy_days,
+    mentally_unhealthy_days,
+    preventable_hosp_rate,
+    percent_smokers,
+    low_birthweight,
+    excessive_drinking,
+    mental_health_providers,
+    mental_health_providers_ratio,
+    percent_unemployed,
+    violent_crime_rate,
+    income_ratio,
+    eighty_percentile_income,
+    twenty_percentile_income,
+    labor_force,
+    percent_child_poverty
   )
 
-# Merge filtered data into one 
+# Combine filtered data into one 
 county_health_rank_2018_2023 <- bind_rows(filtered_2018_2019, filtered_2020_2023)
+
+# Replace NA in county column with state_year
+na_count <- sum(is.na(county_health_rank_2018_2023$county))
+print(na_count)
+county_health_rank_2018_2023 <- county_health_rank_2018_2023 |>
+  mutate(county = ifelse(is.na(county), "state_year", county))
+  
+# Check for data types
+str(county_health_rank_2018_2023)
+
+# Convert chr to numeric and round decimals 
+county_health_rank_2018_2023 <- county_health_rank_2018_2023 |>
+  mutate(across(-c(state, county), ~ifelse(is.na(as.numeric(.)), ., as.numeric(.)))) |> # Convert chr to numeric except state and county 
+  mutate_if(is.numeric, list(~ round(., 5))) # Round all decimals to 5 decimal places
+
+View(county_health_rank_2018_2023) # Check results
+
+# Save as a CSV file
+#write.csv(county_health_rank_2018_2023, file = "/Users/mardielings/Desktop/Data Analytics/project/cleaned/CountyHealthRank2018_2023.csv", row.names = TRUE)
+
 
 
 # Save as a CSV file
