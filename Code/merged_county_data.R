@@ -12,20 +12,23 @@ oregon_county_od <- read_csv(or_county_deaths_url)
 str(health_rank)
 str(oregon_county_od)
 
-# Group by and calculate mean to join data
+# Group by year and county and sum monthly deaths
 group_county1 <- oregon_county_od |>
   group_by(county, year, fips)|>
-  summarize(mean_value = mean(provisional_drug_overdose_deaths, na.rm = TRUE),
-            mean_percentage = mean(percentage_of_records_pending_investigation, na.rm = TRUE))
-
-# Rename mean variables
+  summarize(
+    sum_monthly_provisional_drug_deaths = sum(provisional_drug_overdose_deaths, na.rm = TRUE),
+    sum_monthly_percentage_pending_investigation = sum(percentage_of_records_pending_investigation, na.rm = TRUE)
+  )
+  
+# Sum monthly deaths into years 
 group_county1 <- group_county1 |>
-  rename(mean_drug_od = mean_value, mean_percentage_pending_investigation = mean_percentage)
-View(group_county1) # Check results
+  group_by(county, year, fips) |>
+  summarize(
+    total_provisional_drug_deaths = sum(sum_monthly_provisional_drug_deaths, na.rm = TRUE),
+    total_percentage_pending_investigation = sum(sum_monthly_percentage_pending_investigation, na.rm = TRUE)
+  )
 
-# Join data sets by county and year 
-merged_county <- left_join(health_rank, group_county1, by = c("fips","county", "year"))
-View(merged_county)
+View(group_county1) # Check results
 
 # Save csv file to computer
 #write.csv(merged_county, file = "yourfilepath.csv", row.names = FALSE)
