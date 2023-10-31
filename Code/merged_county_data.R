@@ -8,8 +8,23 @@ or_county_deaths_url <- "https://raw.githubusercontent.com/mardimardimardi/ECNS_
 health_rank <- read_csv(health_rank_url)
 oregon_county_od <- read_csv(or_county_deaths_url)
 
+# Check column names and data types in both data frames
+str(health_rank)
+str(oregon_county_od)
+
+# Group by and calculate mean to join data
+group_county1 <- oregon_county_od |>
+  group_by(county, year, fips)|>
+  summarize(mean_value = mean(provisional_drug_overdose_deaths, na.rm = TRUE),
+            mean_percentage = mean(percentage_of_records_pending_investigation, na.rm = TRUE))
+
+# Rename mean variables
+group_county1 <- group_county1 |>
+  rename(mean_drug_od = mean_value, mean_percentage_pending_investigation = mean_percentage)
+View(group_county1) # Check results
+
 # Join data sets by county and year 
-merged_county <- left_join(health_rank, oregon_county_od, by = c("fips", "year", "county"))
+merged_county <- left_join(health_rank, group_county1, by = c("fips","county", "year"))
 View(merged_county)
 
 # Save csv file to computer
