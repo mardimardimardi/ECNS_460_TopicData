@@ -22,7 +22,7 @@ library(tidyverse)
 
 health_ranking <- read.csv("Data/Cleaned Data/CountyHealthRank2018_2023.csv")
 national_overdose_by_county <- read.csv("Data/Cleaned Data/NationalOverdoseDeathsByCounty_cleaned.csv")
-oregon_overdose_by_county <- read.csv("Data/Cleaned Data/OregonOverdoseDeathsByCounty2020_2023.csv")
+oregon_overdose_deaths_by_county <- read.csv("Data/Cleaned Data/OregonOverdoseDeathsByCounty2020_2023.csv")
 violent_crime <- read.csv("Data/Cleaned Data/ViolentCrime.csv")
 overdose_by_drug <- read.csv("Data/Cleaned Data/OverDosebyDrug_cleaned.csv")
 oregon_merged_data <- read.csv("Data/Cleaned Data/OregonMergedCountyData.csv")
@@ -56,5 +56,14 @@ table(OROverdose_by_drug$all_issignificant)
 #Oregon has less True's compared to False (relatively)- COULD BE IMPORTANT
 #Wanna investigate this further
 
+#OVERDOSE DEATHS- Need pre 2020 data
 
+#Oregon data is in a weird format
+
+#USA:
+#Lotta N/A values
+
+
+sum(national_overdose_by_county$provisional_drug_overdose_deaths == "")/nrow(national_overdose_by_county)
+#46% of data is missing. shoot
 
