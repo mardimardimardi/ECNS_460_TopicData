@@ -67,3 +67,19 @@ table(OROverdose_by_drug$all_issignificant)
 sum(national_overdose_by_county$provisional_drug_overdose_deaths == "")/nrow(national_overdose_by_county)
 #46% of data is missing. shoot
 
+#Health Ranking
+
+plot(health_ranking$yrs_potential_life_lost_rate)
+plot(health_ranking$percent_fair_poor_health)
+plot(health_ranking$phys_unhealthy_days)
+plot(health_ranking$mentally_unhealthy_days) #LOOKs increasing
+plot(health_ranking$preventable_hosp_rate) 
+plot(health_ranking$percent_smokers)
+plot(health_ranking$low_birthweight)
+plot(health_ranking$excessive_drinking)
+plot(health_ranking$mental_health_providers)
+plot(health_ranking$percent_unemployed)
+plot(health_ranking$violent_crime_rate)
+plot(health_ranking$income_ratio)
+plot(health_ranking$percent_child_poverty)
+
