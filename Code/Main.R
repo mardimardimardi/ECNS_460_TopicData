@@ -20,7 +20,7 @@ library(tidyverse)
 
 #Arrests Data 2020- https://www.oregon.gov/osp/pages/uniform-crime-reporting-data.aspx
 
-health_ranking <- read.csv("Data/Cleaned Data/CountyHealthRank2018_2023.csv")
+oregon_health_ranking <- read.csv("Data/Cleaned Data/CountyHealthRank2018_2023.csv")
 national_overdose_by_county <- read.csv("Data/Cleaned Data/NationalOverdoseDeathsByCounty_cleaned.csv")
 oregon_overdose_deaths_by_county <- read.csv("Data/Cleaned Data/OregonOverdoseDeathsByCounty2020_2023.csv")
 violent_crime <- read.csv("Data/Cleaned Data/ViolentCrime.csv")
@@ -83,3 +83,20 @@ plot(health_ranking$violent_crime_rate)
 plot(health_ranking$income_ratio)
 plot(health_ranking$percent_child_poverty)
 
+#DO mor vis stuff later
+
+#Synthetic control setup:
+#Law passed Nov 2020- Enacted Feb 2021 Use 2021+2022 (dont have monthly data)
+
+oregon_health_ranking$year == 2018
+oregon_health_ranking <- oregon_health_ranking
+oregon_health_pre <- oregon_health_ranking[1:111,]
+oregon_health_post <- oregon_health_ranking[112:222,]
+
+cali_health_ranking <- read.csv("Data/Cleaned Data/CleanedStateHealthRankings/CaliforniaCountyHealthRank2018_2023.csv")
+cali_health_ranking <- cali_health_ranking[1:111,]
+cali_health_ranking <- cali_health_ranking[112:222,]
+
+wa_health_ranking <- read.csv("Data/Cleaned Data/CleanedStateHealthRankings/WashingtonCountyHealthRank2018_2023.csv")
+
+#Variables of Interest for the synthetic control analysis-
