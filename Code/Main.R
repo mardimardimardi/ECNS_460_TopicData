@@ -69,64 +69,48 @@ or_yearly <- healthrank_to_yearly(or_health_ranking)
 ca_yearly <- healthrank_to_yearly(ca_health_ranking)
 wa_yearly <- healthrank_to_yearly(wa_health_ranking)
 
-ggplot()+
-  geom_line(data = or_yearly, aes(x = year, y = combined_overdose_deaths), color = "blue")+
-  geom_line(data = ca_yearly, aes(x = year, y = combined_overdose_deaths), color = "red")+
-  geom_line(data = wa_yearly, aes(x = year, y = combined_overdose_deaths), color = "green")
-
-plot(or_yearly$combined_overdose_deaths) 
-plot(ca_yearly$combined_overdose_deaths)
-plot(wa_yearly$combined_overdose_deaths)
-
-#Visually looks like no oregon may be increasing at a slower rate compared to wa/ca
-
-
-#Data is missing a good amount of info. It will be assumed this is missing at random. Data appears to be missing for each state the same way (wont affect synthetic control)
-
-
-#Create pre and post 2020 for before and after the law was enacted
-or_health_ranking_pre <- or_yearly %>%
-  filter(year <= 2020)
-or_health_ranking_post <- or_yearly %>%
-  filter(year > 2020)
-
-ca_health_ranking_pre <- ca_yearly %>%
-  filter(year <= 2020)
-ca_health_ranking_post <- ca_yearly %>%
-  filter(year > 2020)
-
-wa_health_ranking_pre <- wa_yearly %>%
-  filter(year <= 2020)
-wa_health_ranking_post <- wa_yearly %>%
-  filter(year > 2020)
-
 #lets look at combined overdose deaths
 ggplot()+
-  geom_line(data = or_yearly, aes(x = year, y = combined_overdose_deaths), color = "blue")+
-  geom_line(data = ca_yearly, aes(x = year, y = combined_overdose_deaths), color = "red")+
-  geom_line(data = wa_yearly, aes(x = year, y = combined_overdose_deaths), color = "green")
-  
+  geom_line(data = or_yearly, aes(x = year, y = combined_overdose_deaths, color = "Oregon")) +
+  geom_line(data = ca_yearly, aes(x = year, y = combined_overdose_deaths, color = "California")) +
+  geom_line(data = wa_yearly, aes(x = year, y = combined_overdose_deaths, color = "Washington")) +
+  scale_color_manual(name = "State",
+                     values = c("Oregon" = "blue", "California" = "red", "Washington" = "green")) +
+  theme_bw()
+
+#Now do a log transformation to better show percent differences due to population size differences
 ggplot()+
-  geom_line(data = or_yearly, aes(x = year, y = severe_housing_problems), color = "blue")+
-  geom_line(data = ca_yearly, aes(x = year, y = severe_housing_problems), color = "red")+
-  geom_line(data = wa_yearly, aes(x = year, y = severe_housing_problems), color = "green")
+  geom_line(data = or_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "Oregon")) +
+  geom_line(data = ca_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "California")) +
+  geom_line(data = wa_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "Washington")) +
+  scale_color_manual(name = "State",
+                     values = c("Oregon" = "blue", "California" = "red", "Washington" = "green")) +
+  theme_bw()
 
+#It appears Oregon may be increasing in overall overdose deaths at a slower rate compared to CA and WA
 
 ggplot()+
-  geom_line(data = or_yearly, aes(x = year, y = unemployed), color = "blue")+
-  geom_line(data = ca_yearly, aes(x = year, y = unemployed), color = "red")+
-  geom_line(data = wa_yearly, aes(x = year, y = unemployed), color = "green")
+  geom_line(data = or_yearly, aes(x = year, y = severe_housing_problems, color = "Oregon")) +
+  geom_line(data = ca_yearly, aes(x = year, y = severe_housing_problems, color = "California")) +
+  geom_line(data = wa_yearly, aes(x = year, y = severe_housing_problems, color = "Washington")) +
+  scale_color_manual(name = "State",
+                     values = c("Oregon" = "blue", "California" = "red", "Washington" = "green")) +
+  theme_bw()
 
-(data(synth.data))
-(synthdata)
+
+
+#Synthetic Control:
+library(Synth)
 #The three states follow trends mostly closely (Relative to each scale)- Good fit for synthetic control
+
+#Create state number variables to use for synthetic control
 health_ranking$state_num <- ifelse(health_ranking$state == "Oregon", 1, 2)
 
 health_ranking$state_num <- ifelse(health_ranking$state == "Oregon", 1,
                             ifelse(health_ranking$state == "California", 2, 3))
 
 #Lets create long data set for each year- for the synth package
-#Join the three yearly data sets
+#Add the state numbers and states to the yearly data sets
 or_yearly$state_num <- 1
 or_yearly$X.1 <- "Oregon"
 ca_yearly$state_num <- 2
@@ -134,8 +118,14 @@ ca_yearly$X.1 <- "California"
 wa_yearly$state_num <- 3
 wa_yearly$X.1 <- "Washington"
 
+#Join the three yearly data sets by row
 health_ranking_yearly <- rbind(rbind(or_yearly, ca_yearly), wa_yearly)
-health_ranking_yearly <- as.data.frame(health_ranking_yearly)
+health_ranking_yearly <- as.data.frame(health_ranking_yearly) #for synth package purposes
+
+
+#Run a synthetic control with the predictor variable being combined overdose deaths. The two states Washington and 
+#California will serve as the donor pool states. Variables used will be smokers, percent fair or poor health, excessive drinking, and unemployed.
+#The training data will be from 2016-2020, with 2021 and 2022 being the treatment outcomes section.
 dataprep.out <-
   dataprep(health_ranking_yearly,
            predictors = c("smokers", "percent_fair_or_poor_health", "excessive_drinking", "unemployed"),
@@ -147,15 +137,16 @@ dataprep.out <-
            controls.identifier = c(2,3),
            time.predictors.prior = c(2016:2020),
            time.optimize.ssr = c(2016:2020),
-           time.plot = 2016:2023,
+           time.plot = 2016:2022,
   )
 
 synth.out <- synth(dataprep.out)
 print(synth.tables <- synth.tab(
-  dataprep.res = datapre.out,
+  dataprep.res = dataprep.out,
   synth.res = synth.out)
 )
 
+#Create a plot of pre and post treatment
 path.plot(synth.res = synth.out,
           dataprep.res = dataprep.out,
           Ylab = c("Y"),
@@ -164,6 +155,5 @@ path.plot(synth.res = synth.out,
           Legend.position = c("topleft")
 )
 
-plot(or_yearly$year, log(or_yearly$combined_overdose_deaths))
-plot(ca_yearly$year, log(ca_yearly$combined_overdose_deaths))
-plot(wa_yearly$year, log(wa_yearly$combined_overdose_deaths))
+#Our synthetic control analysis seems innacurate. The synthetic Oregon does not follow actual Oregon well pre treatment.
+#The main takeaway is that synthetic Oregon appears to increase faster than actual Oregon in overdose deaths post 2020.
