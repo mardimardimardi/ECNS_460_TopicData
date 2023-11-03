@@ -20,7 +20,7 @@ library(tidyverse)
 
 #Arrests Data 2020- https://www.oregon.gov/osp/pages/uniform-crime-reporting-data.aspx
 
-oregon_health_ranking <- read.csv("Data/Cleaned Data/CountyHealthRank2018_2023.csv")
+or_health_ranking <- read.csv("Data/Cleaned Data/CleanedStateHealthRankings/OregonCountyHealthRank2018_2023.csv")
 national_overdose_by_county <- read.csv("Data/Cleaned Data/NationalOverdoseDeathsByCounty_cleaned.csv")
 oregon_overdose_deaths_by_county <- read.csv("Data/Cleaned Data/OregonOverdoseDeathsByCounty2020_2023.csv")
 violent_crime <- read.csv("Data/Cleaned Data/ViolentCrime.csv")
@@ -88,15 +88,28 @@ plot(health_ranking$percent_child_poverty)
 #Synthetic control setup:
 #Law passed Nov 2020- Enacted Feb 2021 Use 2021+2022 (dont have monthly data)
 
-oregon_health_ranking$year == 2018
-oregon_health_ranking <- oregon_health_ranking
-oregon_health_pre <- oregon_health_ranking[1:111,]
-oregon_health_post <- oregon_health_ranking[112:222,]
+or_health_ranking <- or_health_ranking
+or_health_ranking_pre <- or_health_ranking %>%
+  filter(year <= 2020)
+or_health_ranking_post <- or_health_ranking %>%
+  filter(year > 2020)
 
-cali_health_ranking <- read.csv("Data/Cleaned Data/CleanedStateHealthRankings/CaliforniaCountyHealthRank2018_2023.csv")
-cali_health_ranking <- cali_health_ranking[1:111,]
-cali_health_ranking <- cali_health_ranking[112:222,]
+ca_health_ranking <- read.csv("Data/Cleaned Data/CleanedStateHealthRankings/CaliforniaCountyHealthRank2018_2023.csv")
+ca_health_ranking_pre <- ca_health_ranking %>%
+  filter(year <= 2020)
+ca_health_ranking_post <- ca_health_ranking %>%
+  filter(year > 2020)
 
 wa_health_ranking <- read.csv("Data/Cleaned Data/CleanedStateHealthRankings/WashingtonCountyHealthRank2018_2023.csv")
+wa_health_ranking_pre <- wa_health_ranking %>%
+  filter(year <= 2020)
+wa_health_ranking_post <- wa_health_ranking %>%
+  filter(year > 2020)
+#Variables of Interest for the synthetic control analysis- percent smokers
 
-#Variables of Interest for the synthetic control analysis-
+
+#Create yearly avgs:
+wa_yearly <- healthrank_to_yearly(wa_health_ranking)
+or_yearly <- healthrank_to_yearly(or_health_ranking)
+ca_yearly <- healthrank_to_yearly(ca_health_ranking)
+
