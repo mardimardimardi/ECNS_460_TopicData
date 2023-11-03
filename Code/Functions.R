@@ -11,7 +11,9 @@ ggplot_bar <- function(df,x,y){
 }
 
 healthrank_to_yearly <- function(df){
+  df <- df[!df$county == "year_state_total"]
   df <- df %>%
+    select_if(function(col) !all(col = "year_state_total")) %>%
     group_by(year) %>%
     summarise(across(where(is.numeric), ~ mean(., na.rm = TRUE))) %>%
     select(-c("X", "fips"))
