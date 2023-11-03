@@ -36,9 +36,14 @@ The Well-Being Ranks, Overdose Mortality by County contain county fips codes, co
 
 Data Processing:
 
+For the county health rankings data, we originally had years 2014-2023, but after further inspection the way overdose deaths were collected for 2014-2015 was significantly different that for the years 2016-2023. We opted to drop those years since those data sets also did not include as many well-being measures. 
+
 Findings:
 
 Limitations:
+It is a challenge to find a single cause for an impact on drug decriminalization and its relationship to drug overdose deaths. Since multiple factors can contribute to drug-related outcomes. There has been some evidence linked to the Covid-19 pandemic contributing to drug use, well-being, and mental health. 
+There is limited generalizability to this study as findings from synthetic control analysis are specific to the context of Oregon’s drug policies and may not be generalized to other regions or policies. 
+
 
 Results:
 ```{r setup}
