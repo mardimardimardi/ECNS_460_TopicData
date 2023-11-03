@@ -17,3 +17,5 @@ healthrank_to_yearly <- function(df){
     select(-c("X", "fips"))
   return(df)
 }
+
+
