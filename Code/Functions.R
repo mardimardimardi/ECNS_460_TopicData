@@ -1,8 +1,8 @@
 #GGplot histogram
-ggplot_hist <- function(df,x){
-  return(ggplot(df, aes(x = df$x))+
-           geom_histogram()
-  )
+ggplot_hist <- function(df,x){ #currently dont work, not sure why
+  library(ggplot2)
+  return(ggplot(df, aes(x = x))+
+           geom_histogram())
 }
 
 ggplot_bar <- function(df,x,y){
@@ -10,6 +10,9 @@ ggplot_bar <- function(df,x,y){
            geom_bar(stat = "identity"))
 }
 
+#Function to convert healthrank to yearly mean sums. 
+#The function removes the state total from the dataframe to accurately
+#Calculate yearly column means
 healthrank_to_yearly <- function(df){
   df <- df[!df$county == "year_state_total"]
   df <- df %>%
