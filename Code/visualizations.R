@@ -66,6 +66,7 @@ dataCA |>
 data2 <- data |>
   mutate(od_deaths_percapita = combined_overdose_deaths/population) 
 
+# All states and overdose death percapita for years 2016, 2020, 2023
 data2 |>
   filter(year %in% c(2018, 2020, 2023) & !is.na(od_deaths_percapita)) |>
   ggplot(aes(od_deaths_percapita, y=..count.., fill = state)) +
@@ -73,3 +74,13 @@ data2 |>
   geom_density(alpha=0.3, position = "stack") + 
   facet_grid(year ~ .) 
 
+# Scatter of years of potential life lost rate and overdose mortality rate.
+data2 %>%
+      filter(year %in% c(2020, 2021)) %>%
+      ggplot(aes(x = combined_overdose_mortality_rate, y = combined_ypll_rate, color = factor(year))) +
+      geom_point() +
+      theme_gray() +
+      labs(title = "Scatter Plot for 2020 and 2021", x = "Overdose Mortality Rate", y = "Years Potential Life Lost Rate/100,000 People") +
+      scale_color_manual(values = c("2020" = "blue", "2021" = "red"))
+    
+    
