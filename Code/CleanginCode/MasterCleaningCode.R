@@ -480,6 +480,7 @@ colnames(county_health_ranked_measured2) <- sub("^_", "", colnames(county_health
 
 
 
+
 #******************* Addtional Measure Data All Sates***********************
 # Create a list for health rank data 
 health_rank_data_list2 <- list()
@@ -735,7 +736,7 @@ filtered2 <- combine2 |>
     x__drug_overdose_deaths,
     drug_overdose_mortality_rate,
     household_income,
-    population,
+    population
   )
 View(filtered2)
 
@@ -751,7 +752,8 @@ filtered3 <- combine3 |>
     infant_mortality_rate,
     x__drug_overdose_deaths,
     drug_overdose_mortality_rate,
-    median_household_income
+    median_household_income,
+    population
   )
 
 View(filtered1)
@@ -804,7 +806,6 @@ all_county_additional_ranks2 <- all_county_additional_ranks2 |>
 str(all_county_additional_ranks)
 
 View(all_county_additional_ranks2) # Check results
-
 
 #*************** Final merged data frame for health rankings **********
 
