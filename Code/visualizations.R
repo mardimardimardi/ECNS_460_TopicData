@@ -61,3 +61,15 @@ dataCA |>
   ggplot(aes(combined_overdose_mortality_rate, county)) +
   geom_line(aes(group = county)) +
   geom_point(size=2, aes(color = factor(year)))
+
+# Show deaths percapita for each state
+data2 <- data |>
+  mutate(od_deaths_percapita = combined_overdose_deaths/population) 
+
+data2 |>
+  filter(year %in% c(2018, 2020, 2023) & !is.na(od_deaths_percapita)) |>
+  ggplot(aes(od_deaths_percapita, y=..count.., fill = state)) +
+  scale_x_continuous(trans = "log10") + 
+  geom_density(alpha=0.3, position = "stack") + 
+  facet_grid(year ~ .) 
+
