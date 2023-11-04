@@ -13,15 +13,9 @@ health_ranking <- read.csv("Data/Cleaned Data/CleanedStateHealthRankings/MergedA
 health_ranking <- health_ranking %>%
   filter(year <= 2022) 
 
-#DO we need these two any more?
-national_overdose_by_county <- read.csv("Data/Cleaned Data/NationalOverdoseDeathsByCounty_cleaned.csv")
-oregon_overdose_deaths_by_county <- 
-  national_overdose_by_county[national_overdose_by_county$ST_ABBREV == "OR",]
-
 violent_crime <- read.csv("Data/Cleaned Data/ViolentCrime.csv")
 overdose_by_drug <- read.csv("Data/Cleaned Data/OverDosebyDrug_cleaned.csv")
 
-#Not sure if this is necessary but here for now
 oregon_merged_data <- read.csv("Data/Cleaned Data/OregonMergedCountyData.csv")
 
 #Oregon Violent Crime:
@@ -35,29 +29,24 @@ ggplot(violent_crime, aes(x = Year, y = USA))+
 USOverdose_by_drug <- overdose_by_drug[overdose_by_drug$st_abbrev == "US",]
 OROverdose_by_drug <- overdose_by_drug[overdose_by_drug$st_abbrev == "OR",]
 
+#This data will be used to compare with CA, OR, and WA overdose death totals.
+
+''' Will come back to this:
 library(binsreg)
 binsreg(OROverdose_by_drug$all_percentagechange, OROverdose_by_drug$start_year)
 ggplot(OROverdose_by_drug, aes(x = start_year, y = all_percentagechange))+
   geom_point()
-#*****************FIX Y AXIS******************
+
 ggplot(USOverdose_by_drug, aes(x = start_year, y = all_percentagechange))+
   geom_point()
-#******************VSUALIZE BETTER*****************
+'''
 #What about the is significant column? This column represents a statistically significant, either
 #an increase or decrease
 
 table(USOverdose_by_drug$all_issignificant)
 table(OROverdose_by_drug$all_issignificant)
 
-#Oregon has lower is significant values relative to the U.S.However, this includes decreases as well.
-
-#USA:
-#Lotta N/A values
-
-sum(is.na(national_overdose_by_county))/nrow(national_overdose_by_county)
-#46% of data is missing. This is significant.
-#This data will be used to compare with CA, OR, and WA overdose death totals.
-
+#Oregon has lower is significant values relative to the U.S.
 
 #Create indivdual data sets for Oregon, Washington, and California
 or_health_ranking <- health_ranking[health_ranking$state == "Oregon",]
@@ -156,4 +145,5 @@ path.plot(synth.res = synth.out,
 )
 
 #Our synthetic control analysis seems innacurate. The synthetic Oregon does not follow actual Oregon well pre treatment.
+
 #The main takeaway is that synthetic Oregon appears to increase faster than actual Oregon in overdose deaths post 2020.
