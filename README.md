@@ -29,6 +29,8 @@ How are they related?
 The Well-Being Ranks, Overdose Mortality by County contain county fips codes, county names and year in relation. The Overdose by Drug has a relationship of total non-fatal drug overdoses in each state.
 
 Data Processing:
+For the county health rankings data, we originally had years 2014-2023, but after further inspection the way overdose deaths were collected for 2014-2015 was significantly different that for the years 2016-2023. We opted to drop those years since those data sets also did not include as many well-being measures. 
+
 The data collected was generally in clean condition. SOme column name changes were done, and general data manipulation was completed. For example, health rankings came from yearly files- these had to be merged together. 
 There was generally little missing data. Violent crime and overdose by drugs contained zero missing values. However, a key data set used, health rankings, contained 13 percent N/A values. These appeared generally randomly scatter, and we will assume these are missing at random and will be ignored. 
 
@@ -37,7 +39,9 @@ Findings:
 Initial findings include general decrease in well being, likely due to covid19 (mental health days, pct fair or poor health days, etc). Additionally, drug overdose deaths have been increasing, especially since 2020. However, it appears that Oregon's increase may be slower relative to Washington and Oregon after decriminilzaing drugs. 
 
 Limitations:
-There is limited data post treatment period (2 years). Additionally, the synthetic Oregon may not be a good fit. This wil be further analyzed throughout the semester. As well as continuing to fully understand the statistical basis for synthetic control better. 
+It is a challenge to find a single cause for an impact on drug decriminalization and its relationship to drug overdose deaths. Since multiple factors can contribute to drug-related outcomes. There has been some evidence linked to the Covid-19 pandemic contributing to drug use, well-being, and mental health. 
+There is limited generalizability to this study as findings from synthetic control analysis are specific to the context of Oregon’s drug policies and may not be generalized to other regions or policies. 
+There is also limited data post treatment period (2 years). Additionally, the synthetic Oregon may not be a good fit. This wil be further analyzed throughout the semester. As well as continuing to fully understand the statistical basis for synthetic control better. 
 
 Results:
 Decriminilizing drugs in Oregon has slowed the increase in drug overdose deaths. 
