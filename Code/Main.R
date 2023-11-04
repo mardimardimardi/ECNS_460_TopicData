@@ -40,6 +40,7 @@ ggplot(OROverdose_by_drug, aes(x = start_year, y = all_percentagechange))+
 ggplot(USOverdose_by_drug, aes(x = start_year, y = all_percentagechange))+
   geom_point()
 '''
+
 #What about the is significant column? This column represents a statistically significant, either
 #an increase or decrease
 
@@ -144,6 +145,6 @@ path.plot(synth.res = synth.out,
           Legend.position = c("topleft")
 )
 
-#Our synthetic control analysis seems innacurate. The synthetic Oregon does not follow actual Oregon well pre treatment.
+#Our synthetic control analysis may be innacurate. The synthetic Oregon does not follow actual Oregon well pre treatment.
 
 #The main takeaway is that synthetic Oregon appears to increase faster than actual Oregon in overdose deaths post 2020.
