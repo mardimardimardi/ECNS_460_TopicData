@@ -148,3 +148,4 @@ path.plot(synth.res = synth.out,
 #Our synthetic control analysis may be innacurate. The synthetic Oregon does not follow actual Oregon well pre treatment.
 
 #The main takeaway is that synthetic Oregon appears to increase faster than actual Oregon in overdose deaths post 2020.
+#This suggests decriminalizing drugs helped slow the increase in drug overdose deaths.
