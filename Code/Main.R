@@ -41,8 +41,7 @@ ggplot(USOverdose_by_drug, aes(x = start_year, y = all_percentagechange))+
   geom_point()
 '''
 
-#What about the is significant column? This column represents a statistically significant, either
-#an increase or decrease
+#What about the is significant column? This column represents a statistically significant increase or decrease
 
 table(USOverdose_by_drug$all_issignificant)
 table(OROverdose_by_drug$all_issignificant)
@@ -66,6 +65,7 @@ ggplot()+
   geom_line(data = wa_yearly, aes(x = year, y = combined_overdose_deaths, color = "Washington")) +
   scale_color_manual(name = "State",
                      values = c("Oregon" = "blue", "California" = "red", "Washington" = "green")) +
+  labs(y = "Overdose Deaths") +
   theme_bw()
 
 #Now do a log transformation to better show percent differences due to population size differences
@@ -149,3 +149,42 @@ path.plot(synth.res = synth.out,
 
 #The main takeaway is that synthetic Oregon appears to increase faster than actual Oregon in overdose deaths post 2020.
 #This suggests decriminalizing drugs helped slow the increase in drug overdose deaths.
+
+#Difference in difference analysis
+#Oregon, Washington, and California combined overdose deaths
+
+#Visualize again
+
+ggplot()+
+  geom_line(data = or_yearly, aes(x = year, y = combined_overdose_deaths, color = "Oregon")) +
+  geom_line(data = ca_yearly, aes(x = year, y = combined_overdose_deaths, color = "California")) +
+  geom_line(data = wa_yearly, aes(x = year, y = combined_overdose_deaths, color = "Washington")) +
+  scale_color_manual(name = "State",
+                     values = c("Oregon" = "blue", "California" = "red", "Washington" = "green")) +
+  labs(y = "Overdose Deaths") +
+  theme_bw()
+
+#Now do a log transformation to better show percent differences due to population size differences
+ggplot()+
+  geom_line(data = or_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "Oregon")) +
+  geom_line(data = ca_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "California")) +
+  geom_line(data = wa_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "Washington")) +
+  scale_color_manual(name = "State",
+                     values = c("Oregon" = "blue", "California" = "red", "Washington" = "green")) +
+  theme_bw()
+
+#It appears Oregon may be increasing in overall overdose deaths at a slower rate compared to CA and WA
+#Outcome variable- combined overdose deaths. Control- Wa, Ca. Pre- Before 2021. Post- 2021+2022
+#Regression EQN: Y = B0 + B1*Treatment + B2*Post + B3*Treatment*Post + E
+#Y is our outcome variable;
+
+#Treatment is a dummy variable indicating the treatment (=1) and control (=0) group;
+
+#Post is a dummy variable indicating pre (=0) and post (=1) treatment;
+
+#Treatment * Post is a dummy variable indicating whether the outcome was observed in the treatment group AND it was observed after the intervention (=1), or any other case (=0).
+
+#Create data frame contining oregon, washington, and Cali
+
+overdose_deaths <- as.data.frame(c(or_yearly[,1], or_yearly[,4], ca_yearly[,4], wa_yearly[,4]))
+colnames(overdose_deaths) <- c("Year", "Oregon_Overdoses", "California_Overdoses", "Washington_Overdoses")
