@@ -184,7 +184,38 @@ ggplot()+
 
 #Treatment * Post is a dummy variable indicating whether the outcome was observed in the treatment group AND it was observed after the intervention (=1), or any other case (=0).
 
+
 #Create data frame contining oregon, washington, and Cali
 
-overdose_deaths <- as.data.frame(c(or_yearly[,1], or_yearly[,4], ca_yearly[,4], wa_yearly[,4]))
-colnames(overdose_deaths) <- c("Year", "Oregon_Overdoses", "California_Overdoses", "Washington_Overdoses")
+overdose_deaths <- rbind(wa_yearly[,c(1,4)], rbind(or_yearly[,c(1,4)], ca_yearly[,c(1,4)]))
+overdose_deaths$Country <- 0; overdose_deaths$Treatment <- 0
+
+overdose_deaths$Country[1:7] <- 1; overdose_deaths$Country[8:14] <- 2; overdose_deaths$Country[15:21] <- 3;
+
+#Washington-1, Oregon-2, California-3
+
+overdose_deaths$Treatment[overdose_deaths$year >= 2021] <- 1
+#Now can do DID analysis
+
+#Y = B0+B1*Group + B2*Treatment + B3*Group:Treatment + E
+
+did_model <- lm(combined_overdose_deaths ~ Country + Treatment + Country:Treatment, data = overdose_deaths)
+summary(did_model)
+
+
+
+overdose_deaths <- rbind(or_yearly[,c(1,4)], ca_yearly[,c(1,4)])
+overdose_deaths$Country <- 0; overdose_deaths$Treatment <- 0
+
+overdose_deaths$Country[1:7] <- 0; overdose_deaths$Country[8:14] <- 1; 
+
+#Washington-1, Oregon-2, California-3
+
+overdose_deaths$Treatment[overdose_deaths$year >= 2021] <- 1
+#Now can do DID analysis
+
+#Y = B0+B1*Group + B2*Treatment + B3*Group:Treatment + E
+
+did_model <- lm(combined_overdose_deaths ~ Country + Treatment + Country:Treatment, data = overdose_deaths)
+summary(did_model)
+
