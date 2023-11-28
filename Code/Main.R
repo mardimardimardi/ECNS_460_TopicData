@@ -205,17 +205,16 @@ summary(did_model)
 
 
 overdose_deaths <- rbind(or_yearly[,c(1,4)], ca_yearly[,c(1,4)])
-overdose_deaths$Country <- 0; overdose_deaths$Treatment <- 0
+overdose_deaths$Treatment <- 0; overdose_deaths$Post <- 0
 
-overdose_deaths$Country[1:7] <- 0; overdose_deaths$Country[8:14] <- 1; 
+overdose_deaths$Treatment[1:7] <- 0; overdose_deaths$Treatment[8:14] <- 1; 
 
 #Washington-1, Oregon-2, California-3
 
-overdose_deaths$Treatment[overdose_deaths$year >= 2021] <- 1
+overdose_deaths$Post[overdose_deaths$year >= 2021] <- 1
 #Now can do DID analysis
 
-#Y = B0+B1*Group + B2*Treatment + B3*Group:Treatment + E
+#Y = B0+B1*Treatment + B2*Post + B3*Treatment:Post + E
 
-did_model <- lm(combined_overdose_deaths ~ Country + Treatment + Country:Treatment, data = overdose_deaths)
+did_model <- lm(combined_overdose_deaths ~ Treatment + Post + Treatment:Post, data = overdose_deaths)
 summary(did_model)
-
