@@ -218,3 +218,17 @@ overdose_deaths$Post[overdose_deaths$year >= 2021] <- 1
 
 did_model <- lm(combined_overdose_deaths ~ Treatment + Post + Treatment:Post, data = overdose_deaths)
 summary(did_model)
+
+
+#******** Difference in Difference for county level data ****************
+# Filter out rows where 'county' is equal to "year_state_total" from the data
+health_ranking <- data |>
+  filter(county != "year_state_total")
+
+# Create a DiD treatment variable
+did_data <- health_ranking |>
+  mutate(treatment = ifelse(state == "Oregon" & year >= 2021, 1, 0))
+
+# Fit the DiD model using year and county fixed effects and population as a covariate
+did_model_county <- lm(combined_overdose_deaths ~ treatment + factor(county) + factor(year) + treatment:factor(year) + population, data = did_data)
+summary(did_model_county)
