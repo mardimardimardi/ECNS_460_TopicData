@@ -168,7 +168,6 @@ health_ranking_WA %>%
 # California 
 # Save the ggplot to a variable
 
-
 health_ranking_CA %>%
   filter(year %in% c(2016, 2020, 2023) & !is.na(combined_overdose_mortality_rate)) %>%
   mutate(county = reorder(county, combined_overdose_mortality_rate)) %>%
