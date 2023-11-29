@@ -1,0 +1,167 @@
+---
+title: "Exploratory Analysis"
+author: "James Santarpio and Mardi Elings"
+date: "2023-11-30"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse)
+library(ggplot2)
+
+
+url <- c("https://raw.githubusercontent.com/mardimardimardi/ECNS_460_TopicData/main/Data/Cleaned%20Data/CleanedStateHealthRankings/MergedAllCountyRanks.csv")
+# Read csv
+data <- read.csv(url)
+
+# Remove 2023- 2023 is a duplicate of 2022 for much of the data
+health_ranking <- data %>%
+  filter(year <= 2023) %>%
+  filter(! (county %in% c("year_state_total")))
+
+```
+# Data Analytics Term Project
+## Project Desription 
+
+### Topic:
+The effect of drug decriminalization in Oregon on overdose deaths and well-being compared to California and Washington.
+
+### Why it Matters 
+The study of drug decriminalization and overdose rates in Oregon has potential for significant policy and societal relevance. There are many debates on the benefits and drawbacks that drug use and decriminalization has on potential for policy implications involving economics, public health, criminal justice, and community well-being.
+
+### Research Question and Motivation
+What is the effect of drug decriminalization on overdose deaths and well-being? A policy change like Oregon's can have significant consequences on populations who are most at risk of overdose deaths, economic impacts on health care costs, and overall well-being. Investigating the effects with county level data, we used a  difference-in-difference model with fixed effects to assess the impact of the policy change in Oregon. By comparing the outcomes in Oregon before and after the intervention to a control group of Washington and California counties as control groups. 
+
+### Description of Data
+
+#### Overdose Mortality by County in the US:
+The Overdose Mortality by County in the US is from the CDC Center for Health Statistics for the years 2020-2023. These provisional county-Level drug Overdose death counts are based on death records and is received by the NCHS receives the death records from the state vital registration offices through the Vital Statistics Cooperative Program (VSCP). The provisional counts are reported by the county were the decedent resided, not necessarily where they died.
+
+#### County Well-Being Rankings:
+The County Well-Being Rankings are for the years 2014-2023 and is collected by County Health Rankings & Roadmaps CHR&R, a program of the University of Wisconsin Population Health Institute. The health rankings include deaths which include overdose deaths, years of potential life lost, mental health statistics, income, and other health public health rankings.
+
+#### Overdose by Drug:
+The Overdose by drug dataset contains information on non-fatal overdose data by state for 2018-2023. Provided by the CDC, DOSE (Drug Overdose Surveillance and Epidemiology) collects health department reports in each state.
+
+Other variables of interest include opioid and stimulant overdoses and the significance of the change from previous months in those overdoses.
+Violent Crime Data From the FBI crime data reporter database, the number of violent crimes in Oregon.
+
+#### How are they related? 
+The Well-Being Ranks, Overdose Mortality by County contain county fips codes, county names and year in relation. The Overdose by Drug has a relationship of total non-fatal drug overdoses in each state.
+
+## Data Processing 
+For the county health rankings data, we originally had years 2014-2023, but after further inspection we found the way overdose deaths were collected for 2014-2015 was significantly different than for the years 2016-2023. We opted to drop those years and due to those data sets not including as many well-being measures.
+
+The data collected was generally in clean condition. Some column name changes were done, and general data manipulation was completed. For example, health rankings came from yearly filet, which had to be merged together. There was generally little missing data. Violent crime and overdose by drugs contained zero missing values. However, a key data set used, health rankings, contained 13 percent N/A values. These appeared generally randomly scatter, and we will assume these are missing at random and will be ignored.
+
+### Findings and Visualizations 
+
+Initial findings include general decrease in well being, after 2020 which is likely due to Covid-19. Well-being variables include, mental health days, fair or poor health days, excessive drinking, and income. Additionally, drug overdose deaths have been increasing, especially since 2020. However, it appears that Oregon's increase may be slower relative to Washington and Oregon after decriminalizing drugs.
+
+We compared the parallel trends of overdose deaths per-capita in all states. Pre-treatment shows (2016-2020) shows 
+
+
+``` {r}
+# Show deaths per-capita for each state
+data2 <- health_ranking |>
+  mutate(od_deaths_percapita = combined_overdose_deaths / population)
+
+# All states and overdose death per-capita for years 2016, 2020, 2023
+data2 |>
+  filter(year %in% c(2016, 2018, 2020, 2023) & !is.na(od_deaths_percapita)) |>
+  ggplot(aes(od_deaths_percapita, y = after_stat(count), fill = state)) +
+  scale_x_continuous(
+    trans = "log10",
+    labels = scales::label_number(scale = 1e6, suffix = "M")  # Adjust scale based on your data
+  ) +
+  geom_density(alpha = 0.3, position = "stack") +
+  facet_grid(year ~ .) +
+  labs(
+    title = "Density Plot of Overdose Deaths Per Capita by State",
+    x = "Overdose Deaths Per Capita",
+    y = "Count of Overdose Deaths",
+    fill = "State"
+  )
+
+```
+
+Comparing the rate of drug mortality by county depicts increases in many counties in every state we are examining. 
+
+```{r Cleveland dot plots, fig.height=5, fig.width=8}
+
+# Create Cleveland dot plots for each state to show changes in county before and after the policy change 
+# Arrange the data mortality in desc order and subset into states to see the changes in county by year
+health_ranking_OR <- health_ranking |>
+  arrange(desc(combined_overdose_mortality_rate)) |>
+  filter(state == "Oregon")
+
+health_ranking_WA <- health_ranking |>
+  arrange(desc(combined_overdose_mortality_rate)) |>
+  filter(state == "Washington")
+
+health_ranking_CA <- health_ranking |>
+  arrange(desc(combined_overdose_mortality_rate)) |>
+  filter(state == "California")
+
+# Oregon
+health_ranking_OR %>%
+  filter(year %in% c(2016, 2020, 2023) & !is.na(combined_overdose_mortality_rate)) %>%
+  mutate(county = reorder(county, combined_overdose_mortality_rate)) %>%
+  ggplot(aes(combined_overdose_mortality_rate, county)) +
+  geom_line(aes(group = county)) +
+  geom_point(size = 2, aes(color = factor(year))) +
+  labs(title = "Overdose Mortality Rate in Oregon",
+       x = "Overdose Mortality Rate",  # Add x-axis label
+       y = "County") +
+  theme_minimal()
+
+# Washington
+health_ranking_WA %>%
+  filter(year %in% c(2016, 2020, 2023) & !is.na(combined_overdose_mortality_rate)) %>%
+  mutate(county = reorder(county, combined_overdose_mortality_rate)) %>%
+  ggplot(aes(combined_overdose_mortality_rate, county)) +
+  geom_line(aes(group = county)) +
+  geom_point(size = 2, aes(color = factor(year))) +
+  labs(title = "Overdose Mortality Rate in Washington",
+       x = "Overdose Mortality Rate",  # Add x-axis label
+       y = "County") +
+  theme_minimal()
+```
+
+```{r CA Cleveland dot plots, fig.height=7, fig.width=8}
+# California 
+# Save the ggplot to a variable
+
+
+health_ranking_CA %>%
+  filter(year %in% c(2016, 2020, 2023) & !is.na(combined_overdose_mortality_rate)) %>%
+  mutate(county = reorder(county, combined_overdose_mortality_rate)) %>%
+  ggplot(aes(combined_overdose_mortality_rate, county)) +
+  geom_line(aes(group = county)) +
+  geom_point(size = 2, aes(color = factor(year))) +
+  labs(title = "Overdose Mortality Rate in California",
+       x = "Overdose Mortality Rate",  # Add x-axis label
+       y = "County") +
+  theme_minimal()
+
+
+```
+
+
+### Methods 
+
+
+
+### Results
+Decriminalizing drugs in Oregon has slowed the increase in drug overdose deaths.
+
+
+
+### Limitations 
+It is a challenge to find a single cause for an impact on drug decriminalization and its relationship to drug overdose deaths. Since multiple factors can contribute to drug-related outcomes. There has been some evidence linked to the Covid-19 pandemic contributing to drug use, well-being, and mental health. There is limited generalizability to this study as findings from synthetic control analysis are specific to the context of Oregon drug policies and may not be generalized to other regions or policies. There is also limited data post treatment period (2 years). Additionally, the synthetic Oregon may not be a good fit. This will be further analyzed throughout the semester. As well as continuing to fully understand the statistical basis for synthetic control better.
+
