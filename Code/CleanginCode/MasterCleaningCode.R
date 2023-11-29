@@ -3,10 +3,14 @@ library(dplyr)
 library(skimr)
 library(summarytools)
 
+# Set working directory 
+working_directory <- "/Users/mardielings/Desktop/Data Analytics/project/"
+setwd(working_directory)
+
 #************* Cleaning Oregon Violent Crime *********
 
 # Load Oregon  violent crime data 
-OregonViolentCrime <- "https://raw.githubusercontent.com/mardimardimardi/ECNS_460_TopicData/main/Data/OregonViolentCrime.csv"
+OregonViolentCrime <- "raw_data/OregonViolentCrime.csv"
 
 oregon_violent_crime <- read.csv(OregonViolentCrime, header = TRUE)
 # Rename column names
@@ -22,7 +26,8 @@ print(oregon_violent_crime)
 #********** Clean Overdose by County *****************
 
 # Load overdose by county 2020
-OverdoseByCounty2020 <- "https://raw.githubusercontent.com/mardimardimardi/ECNS_460_TopicData/main/Data/OverdoseDeathsByCounty2020-.csv"
+OverdoseByCounty2020 <- "raw_data/OverdoseByCount2020-.csv"
+
 overdose_by_county_2020 <- read.csv(OverdoseByCounty2020)
 
 # Standardize and rename column names
@@ -46,41 +51,17 @@ print(oregon_overdose_by_county) # Check results
 #write.csv(oregon_overdose_by_county, file = orod_file_path, row.names = FALSE)
 
 
-# load overdose by drug. sheet = 2 from excel workbook
-OverdosebyDrug <- "https://raw.githubusercontent.com/mardimardimardi/ECNS_460_TopicData/main/Data/Overdose_by_drug.csv"
-overdose_by_drug <- read.csv(OverdosebyDrug)
 
-# remove rows with NA's and replace headers 
-overdose_by_drug <- overdose_by_drug |>
-  slice(4:n())
-colnames(overdose_by_drug) <- NULL
-
-# use first row to set column names and standardize col names
-colnames(overdose_by_drug) <- as.character(unlist(overdose_by_drug[1, ]))
-overdose_by_drug <- overdose_by_drug[-1, ]
-overdose_by_drug <- overdose_by_drug |>
-  rename_all(~str_replace(., "([A-Z])", "_\\1")) # places "_" before capital letter
-colnames(overdose_by_drug) <- tolower(colnames(overdose_by_drug)) # removes capitals from column headers
-colnames(overdose_by_drug)[colnames(overdose_by_drug) == "state"] <- "st_abbrev" # standarized header names
-print(overdose_by_drug)
-
-# Check strings and missing values 
-skim(overdose_by_drug)
-
-#oddrug_file_path <- "yourfilepath.csv"
-#write.csv(overdose_by_drug, file = oddrug_file_path, row.names = FALSE)
-
-#**************** Cleaning Oregon County Overdose by Drug ****************
-
-library(tidyverse)
+#**************** Merge Oregon Counties Overdose by Drug and Health Rankings ****************
 
 # Load cleaned csv files from github using file paths
-health_rank_url <- "https://raw.githubusercontent.com/mardimardimardi/ECNS_460_TopicData/main/Data/Cleaned%20Data/CountyHealthRank2018_2023.csv"
-or_county_deaths_url <- "https://raw.githubusercontent.com/mardimardimardi/ECNS_460_TopicData/main/Data/Cleaned%20Data/OregonOverdoseByCounty2020_2023.csv"
+health_rank <- "cleaned/OregonCountyHealthRank2018_2023.csv"
+or_county_deaths <- "cleaned/OregonOverdoseByCounty2020_2023.csv"
 
 # Create data frames for files 
-health_rank <- read_csv(health_rank_url)
-oregon_county_od <- read_csv(or_county_deaths_url)
+health_rank <- read_csv(health_rank)
+oregon_county_od <- read_csv(or_county_deaths)
+
 
 # Check column names and data types in both data frames
 str(health_rank)
@@ -104,9 +85,34 @@ group_county1 <- group_county1 |>
 
 View(group_county1) # Check results
 
+# load overdose by drug. sheet = 2 from excel workbook
+OverdosebyDrug <- "/raw_data/OverDosebyDrug.csv"
 
-#*************** Ranked Measure Data All States ***************
+overdose_by_drug <- read.csv(OverdosebyDrug)
 
+# remove rows with NA's and replace headers 
+overdose_by_drug <- overdose_by_drug |>
+  slice(4:n())
+colnames(overdose_by_drug) <- NULL
+
+# use first row to set column names and standardize col names
+colnames(overdose_by_drug) <- as.character(unlist(overdose_by_drug[1, ]))
+overdose_by_drug <- overdose_by_drug[-1, ]
+overdose_by_drug <- overdose_by_drug |>
+  rename_all(~str_replace(., "([A-Z])", "_\\1")) # places "_" before capital letter
+colnames(overdose_by_drug) <- tolower(colnames(overdose_by_drug)) # removes capitals from column headers
+colnames(overdose_by_drug)[colnames(overdose_by_drug) == "state"] <- "st_abbrev" # standardized  header names
+print(overdose_by_drug)
+
+# Check strings and missing values 
+skim(overdose_by_drug)
+
+#oddrug_file_path <- "yourfilepath.csv"
+#write.csv(overdose_by_drug, file = oddrug_file_path, row.names = FALSE)
+
+
+
+#*************** Load Health Rank Measures From Excel ***************
 # Create a list for health rank data 
 health_rank_data_list1 <- list()
 
@@ -164,6 +170,9 @@ health_rank_filepaths1 <- c(
   "/Users/mardielings/Desktop/Data Analytics/project/raw_data/WashingtonHealthRanking/2023 County Health Rankings Washington Data.xlsx"
 )
 
+
+#*************** Ranked Measure Data All States ***************
+
 # Loop through the file paths and load "Additional Measure Data" from each Excel file
 for (i in 1:length(health_rank_filepaths1)) {
   file_path <- health_rank_filepaths1[i]
@@ -173,8 +182,6 @@ for (i in 1:length(health_rank_filepaths1)) {
   # Add the data frame to the list
   health_rank_data_list1[[i]] <- data
 }
-
-
 
 # Now you can access the data using the new list
 health_rank2014_Oregon <- health_rank_data_list1[[1]]
@@ -227,6 +234,7 @@ data_frame_names2 <- c("health_rank2016_Oregon", "health_rank2016_California", "
                        "health_rank2017_Oregon", "health_rank2017_California", "health_rank2017_Washington", 
                        "health_rank2018_Oregon", "health_rank2018_California", "health_rank2018_Washington", 
                        "health_rank2019_Oregon", "health_rank2019_California", "health_rank2019_Washington")
+
 data_frame_names3 <- c("health_rank2020_Oregon", "health_rank2020_California", "health_rank2020_Washington", 
                        "health_rank2021_Oregon", "health_rank2021_California", "health_rank2021_Washington", 
                        "health_rank2022_Oregon", "health_rank2022_California", "health_rank2022_Washington",
@@ -234,83 +242,53 @@ data_frame_names3 <- c("health_rank2020_Oregon", "health_rank2020_California", "
 
 
 View(data_frame_names1)
-
-# Remove column names and replace with values from the first row for each named data frame
-for (df_name in data_frame_names) {
-  df <- get(df_name)
-  # Store the 'year' column name separately
+# Create a function to process data frame
+process_dataframe <- function(df) {
   year_colname <- colnames(df["year"])
-  # Replace column names with values from the first row, excluding 'year'
   colnames(df)[colnames(df) != "year"] <- unname(df[1, colnames(df) != "year"])
-  # Put back the 'year' column name
   colnames(df)["year"] <- year_colname
-  assign(df_name, df)  # Update the data frame
+  colnames(df) <- make.names(colnames(df), unique=TRUE)
+  df <- df[-1, , drop = FALSE]
+  return(df)
 }
 
-# Loop through data frames and remove the first row from each
-for (df_name in data_frame_names) {
-  df <- get(df_name)  # Get the data frame
-  colnames(df) <- make.names(colnames(df), unique=TRUE)  # Rename duplicate column names
-  df <- df[-1, , drop = FALSE]  # Remove the first row
-  assign(df_name, df)  # Update the data frame
-}
-
-View(health_rank2014_Oregon) # Check results 
-
-
-# Initialize an empty data frame to store the combined data 2014-2019 with .xls 
-combine1 <- data.frame()
-combine2 <- data.frame()
-combine3 <- data.frame()
-
-# Loop through data frames from all_data_frame_names and bind rows
-for (df_name in data_frame_names1) {
-  if (is.null(combine1)) {
-    combine1 <- get(df_name)
-  } else {
-    combine1 <- bind_rows(combine1, get(df_name))
+# Create a function to combine data frames
+combine_dataframes <- function(data_frame_names) {
+  combined_df <- NULL
+  for (df_name in data_frame_names) {
+    current_df <- process_dataframe(get(df_name))
+    combined_df <- ifelse(is.null(combined_df), current_df, bind_rows(combined_df, current_df))
   }
+  return(combined_df)
 }
 
-# Loop through data frames from all_data_frame_names and bind rows
-for (df_name in data_frame_names2) {
-  if (is.null(combine2)) {
-    combine2 <- get(df_name)
-  } else {
-    combine2 <- bind_rows(combine2, get(df_name))
-  }
+# Apply the process_dataframe function and combine_dataframes function to each data frame set
+combine1 <- combine_dataframes(data_frame_names1)
+combine2 <- combine_dataframes(data_frame_names2)
+combine3 <- combine_dataframes(data_frame_names3)
+
+# remove variables by creating function 
+remove_variables <- function(df) {
+  df |>
+    select(-contains("95"), -contains("z"))
 }
 
-# Loop through data frames from all_data_frame_names and bind rows
-for (df_name in data_frame_names3) {
-  if (is.null(combine3)) {
-    combine3 <- get(df_name)
-  } else {
-    combine3 <- bind_rows(combine3, get(df_name))
-  }
+# Apply the function to each data frame
+for (i in 1:3) {
+  assign(paste("combine", i, sep = ""), get(paste("combine", i, sep = "")) %>%
+           remove_variables())
 }
 
-# remove variables 
-combine1 <- combine1 |>
-  select(-contains("95"), -contains("z"))
+# Change all col names to lower case by creating a function
+process_column_names <- function(df) {
+  df |>
+    rename_all(~ gsub("\\.", "_", tolower(.)))
+}
 
-combine2 <- combine2 |>
-  select(-contains("95"), -contains("z"))
-
-
-combine3 <- combine3 |>
-  select(-contains("95"), -contains("z"))
-
-# Change all col names to lower case
-colnames(combine1) <- tolower(colnames(combine1))
-colnames(combine2) <- tolower(colnames(combine2))
-colnames(combine3) <- tolower(colnames(combine3))  
-
-# Replace all '.' with '_'
-colnames(combine1) <- gsub("\\.", "_", colnames(combine1))
-colnames(combine2) <- gsub("\\.", "_", colnames(combine2))
-colnames(combine3) <- gsub("\\.", "_", colnames(combine3))
-
+# Loop through combine data frames and process column names
+for (i in 1:3) {
+  assign(paste0("combine", i), process_column_names(get(paste0("combine", i))))
+}
 
 # filter selected variables from each combined data frame
 filtered4 <- combine1 |>
@@ -441,9 +419,6 @@ county_health_ranked_measured <- county_health_ranked_measured|>
   mutate(violent_crime_rates = coalesce(violent_crime_rate, annual_average_violent_crimes))
 
 
-
-
-
 county_health_ranked_measured2 <- county_health_ranked_measured |>
   select(fips, 
          year, 
@@ -462,9 +437,6 @@ county_health_ranked_measured2 <- county_health_ranked_measured |>
          income_ratio,
          x__severe_housing_problems)
 
-
-
-
 # Convert chr to numeric and round decimals 
 county_health_ranked_measured2 <- county_health_ranked_measured2 |>
   mutate( across(-c(state, county, contains("ratio")), ~tryCatch(as.numeric(.), error = function(e) .))) |>
@@ -473,71 +445,12 @@ county_health_ranked_measured2 <- county_health_ranked_measured2 |>
 str(county_health_ranked_measured2)
 
 # Remove x and _ from names 
-colnames(county_health_ranked_measured2) <- sub("^x", "", colnames(county_health_ranked_measured2))
-colnames(county_health_ranked_measured2) <- sub("^_", "", colnames(county_health_ranked_measured2))
-colnames(county_health_ranked_measured2) <- sub("^_", "", colnames(county_health_ranked_measured2))
+colnames(county_health_ranked_measured2) <- gsub("^x_|^_", "", colnames(county_health_ranked_measured2))
 
+#******************* Additional Measure Data All Sates***********************
+# Create a list for health rank data from excel list
 
-
-
-
-#******************* Addtional Measure Data All Sates***********************
-# Create a list for health rank data 
-health_rank_data_list2 <- list()
-
-# List of Excel file path
-# I will replace these with github file pays once I convert the excel sheets to .csv
-health_rank_filepaths2 <- c(  
-  # 2014
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/OregonHealthRanking/2014 County Health Rankings Oregon Data.xls",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/CaliforniaHealthRanking/2014 County Health Rankings California Data.xls",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/WashingtonHealthRanking/2014 County Health Rankings Washington Data.xls",
-  
-  # 2015
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/OregonHealthRanking/2015 County Health Rankings Oregon Data.xls",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/CaliforniaHealthRanking/2015 County Health Rankings California Data.xls",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/WashingtonHealthRanking/2015 County Health Rankings Washington Data.xls",
-  
-  # 2016
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/OregonHealthRanking/2016 County Health Rankings Oregon Data.xls",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/CaliforniaHealthRanking/2016 County Health Rankings California Data.xls",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/WashingtonHealthRanking/2016 County Health Rankings Washington Data.xls",
-  
-  # 2017
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/OregonHealthRanking/2017 County Health Rankings Oregon Data.xls",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/CaliforniaHealthRanking/2017 County Health Rankings California Data.xls",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/WashingtonHealthRanking/2017 County Health Rankings Washington Data.xls",
-  
-  # 2018
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/OregonHealthRanking/2018 County Health Rankings Oregon Data.xls",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/CaliforniaHealthRanking/2018 County Health Rankings California Data.xls",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/WashingtonHealthRanking/2018 County Health Rankings Washington Data.xls",
-  
-  # 2019
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/OregonHealthRanking/2019 County Health Rankings Oregon Data.xls",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/CaliforniaHealthRanking/2019 County Health Rankings California Data.xls",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/WashingtonHealthRanking/2019 County Health Rankings Washington Data.xls",
-  
-  # 2020
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/OregonHealthRanking/2020 County Health Rankings Oregon Data.xlsx",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/CaliforniaHealthRanking/2020 County Health Rankings California Data.xlsx",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/WashingtonHealthRanking/2020 County Health Rankings Washington Data.xlsx",
-  
-  # 2021
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/OregonHealthRanking/2021 County Health Rankings Oregon Data.xlsx",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/CaliforniaHealthRanking/2021 County Health Rankings California Data.xlsx",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/WashingtonHealthRanking/2021 County Health Rankings Washington Data.xlsx",
-  
-  # 2022
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/OregonHealthRanking/2022 County Health Rankings Oregon Data.xlsx",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/CaliforniaHealthRanking/2022 County Health Rankings California Data.xlsx",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/WashingtonHealthRanking/2022 County Health Rankings Washington Data.xlsx",
-  
-  # 2023
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/OregonHealthRanking/2023 County Health Rankings Oregon Data.xlsx",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/CaliforniaHealthRanking/2023 County Health Rankings California Data.xlsx",
-  "/Users/mardielings/Desktop/Data Analytics/project/raw_data/WashingtonHealthRanking/2023 County Health Rankings Washington Data.xlsx"
-)
+health_rank_data_list2 <- health_rank_filepaths1
 
 # Loop through the file paths and load "Additional Measure Data" from each Excel file
 for (i in 1:length(health_rank_filepaths2)) {
@@ -607,87 +520,41 @@ data_frame_names3 <- c("health_rank2020_Oregon", "health_rank2020_California", "
                        "health_rank2022_Oregon", "health_rank2022_California", "health_rank2022_Washington",
                        "health_rank2023_Oregon", "health_rank2023_California", "health_rank2023_Washington")
 
-# Remove column names and replace with values from the first row for each named data frame
+# Function to process a data frame
+process_dataframe <- function(df) {
+  colnames(df)[-1] <- as.character(df[1, -1])
+  df <- df[-1, , drop = FALSE]
+  colnames(df) <- make.names(colnames(df), unique=TRUE)
+  return(df)
+}
+
+# Loop through data frames from data_frame_names, process them, and update
 for (df_name in data_frame_names) {
-  df <- get(df_name)
-  # Store the 'year' column name separately
-  year_colname <- colnames(df["year"])
-  # Replace column names with values from the first row, excluding 'year'
-  colnames(df)[colnames(df) != "year"] <- unname(df[1, colnames(df) != "year"])
-  # Put back the 'year' column name
-  colnames(df)["year"] <- year_colname
-  assign(df_name, df)  # Update the data frame
+  assign(df_name, process_dataframe(get(df_name)))
 }
 
-# Loop through data frames and remove the first row from each
-for (df_name in data_frame_names) {
-  df <- get(df_name)  # Get the data frame
-  colnames(df) <- make.names(colnames(df), unique=TRUE)  # Rename duplicate column names
-  df <- df[-1, , drop = FALSE]  # Remove the first row
-  assign(df_name, df)  # Update the data frame
+# Check results for one of the data frames
+View(get("health_rank2014_Oregon"))
+
+# Function to bind rows from a list of data frames and remove variables containing "95"
+bind_rows_list <- function(df_list) {
+  df_list <- lapply(df_list, function(df) df |> select(-contains("95")))
+  if (length(df_list) > 0) do.call(bind_rows, df_list) else NULL
 }
 
-View(health_rank2014_Oregon) # Check results 
+# Combine data frames into a list and bind rows
+combined_list <- lapply(1:3, function(i) bind_rows_list(list(combined_list[[i]], get(paste("data_frame_names", i, sep = "")))))
 
+# Make columns unique, change to lowercase, and replace '.' with '_'
+combined_list <- lapply(combined_list, function(df) {
+  colnames(df) <- make.unique(tolower(gsub("\\.", "_", colnames(df))))
+  df
+})
 
-# Initialize an empty data frame to store the combined data 2014-2019 with .xls 
-combine1 <- data.frame()
-combine2 <- data.frame()
-combine3 <- data.frame()
-
-# Loop through data frames from all_data_frame_names and bind rows
-for (df_name in data_frame_names1) {
-  if (is.null(combine1)) {
-    combine1 <- get(df_name)
-  } else {
-    combine1 <- bind_rows(combine1, get(df_name))
-  }
-}
-
-# Loop through data frames from all_data_frame_names and bind rows
-for (df_name in data_frame_names2) {
-  if (is.null(combine2)) {
-    combine2 <- get(df_name)
-  } else {
-    combine2 <- bind_rows(combine2, get(df_name))
-  }
-}
-
-# Loop through data frames from all_data_frame_names and bind rows
-for (df_name in data_frame_names3) {
-  if (is.null(combine3)) {
-    combine3 <- get(df_name)
-  } else {
-    combine3 <- bind_rows(combine3, get(df_name))
-  }
-}
-
-
-# remove variables 
-combine1 <- combine1 |>
-  select(-contains("95"))
-
-combine2 <- combine2 |>
-  select(-contains("95")) 
-
-
-combine3 <- combine3 |>
-  select(-contains("95"))
-
-# Make columns unique
-colnames(combine1) <- make.unique(colnames(combine1))
-
-# Change all col names to lower case
-colnames(combine1) <- tolower(colnames(combine1))
-colnames(combine2) <- tolower(colnames(combine2))
-colnames(combine3) <- tolower(colnames(combine3))
-
-# Replace all '.' with '_'
-colnames(combine1) <- gsub("\\.", "_", colnames(combine1))
-colnames(combine2) <- gsub("\\.", "_", colnames(combine2))
-colnames(combine3) <- gsub("\\.", "_", colnames(combine3))
-
-
+# Separate variables
+combine1 <- combined_list[[1]]
+combine2 <- combined_list[[2]]
+combine3 <- combined_list[[3]]
 
 # filter selected variables
 filtered1 <- combine1|>
@@ -712,9 +579,6 @@ filtered1 <- combine1|>
 filtered <- filtered1 |>
   mutate(combined_drug_poisoning_deaths = coalesce(drug_poisoning_deaths, x__drug_poisoning_deaths)) |>
   mutate(combined_rural = coalesce(rural, x__rural))
-
-View(filtered1)
-
 
 
 # Filter combined 2016-2019 
@@ -756,9 +620,6 @@ filtered3 <- combine3 |>
     population
   )
 
-View(filtered1)
-View(filtered2)
-View(filtered3)
 
 # Combine filtered data into one 
 all_county_additional_ranks <- bind_rows(filtered1, filtered2, filtered3)
@@ -807,10 +668,11 @@ str(all_county_additional_ranks)
 
 View(all_county_additional_ranks2) # Check results
 
+
 #*************** Final merged data frame for health rankings **********
 
-additional_ranks <- "https://raw.githubusercontent.com/mardimardimardi/ECNS_460_TopicData/main/Data/Cleaned%20Data/CleanedStateHealthRankings/AllCountiesAdditionalRanks.csv"
-measured_rank <- "https://raw.githubusercontent.com/mardimardimardi/ECNS_460_TopicData/main/Data/Cleaned%20Data/CleanedStateHealthRankings/AllCountyHealthMeasuredRanks.csv"
+additional_ranks <- "cleaned/AdditionalRanks.csv"
+measured_rank <- "cleaned/AllCountyHealthMeasuredRanks.csv"
 
 additional_ranks_df <- read.csv(url(additional_ranks))
 measured_rank_df <- read.csv(url(measured_rank))
