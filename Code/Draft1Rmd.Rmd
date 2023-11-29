@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 library(tidyverse)
 library(ggplot2)
+source("Functions.R")
 
 
 url <- c("https://raw.githubusercontent.com/mardimardimardi/ECNS_460_TopicData/main/Data/Cleaned%20Data/CleanedStateHealthRankings/MergedAllCountyRanks.csv")
@@ -88,6 +89,36 @@ data2 |>
     fill = "State"
   )
 
+```
+
+```{r}
+#Create individual data sets for Oregon, Washington, and California
+or_health_ranking <- health_ranking[health_ranking$state == "Oregon",]
+ca_health_ranking <- health_ranking[health_ranking$state == "California",]
+wa_health_ranking <- health_ranking[health_ranking$state == "Washington",]
+
+#Now create yearly averages for the states from the healthrank_to_yearly function from Functions.R:
+or_yearly <- healthrank_to_yearly(or_health_ranking)
+ca_yearly <- healthrank_to_yearly(ca_health_ranking)
+wa_yearly <- healthrank_to_yearly(wa_health_ranking)
+
+ggplot()+
+  geom_line(data = or_yearly, aes(x = year, y = combined_overdose_deaths, color = "Oregon")) +
+  geom_line(data = ca_yearly, aes(x = year, y = combined_overdose_deaths, color = "California")) +
+  geom_line(data = wa_yearly, aes(x = year, y = combined_overdose_deaths, color = "Washington")) +
+  scale_color_manual(name = "State",
+                     values = c("Oregon" = "blue", "California" = "red", "Washington" = "green")) +
+  labs(y = "Overdose Deaths") +
+  theme_bw()
+
+#Now do a log transformation to better show percent differences due to population size differences
+ggplot()+
+  geom_line(data = or_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "Oregon")) +
+  geom_line(data = ca_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "California")) +
+  geom_line(data = wa_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "Washington")) +
+  scale_color_manual(name = "State",
+                     values = c("Oregon" = "blue", "California" = "red", "Washington" = "green")) +
+  theme_bw()
 ```
 
 Comparing the rate of drug mortality by county depicts increases in many counties in every state we are examining. 
