@@ -208,10 +208,8 @@ health_ranking_CA %>%
 
 ## Methods 
 
-A synthetic control analysis was conducted using Washington and Oregon as donor states. This analysis has significant limitations due to the lack of donor states and potential lack of credible covariates.
-
 ## Difference-in-Difference 
-We used a difference-in-difference regression with fixed effects to investigate the impact of drug decriminalization in Oregon counties compared to other states.
+We used a difference-in-difference regression with fixed effects to investigate the impact of drug decriminalization starting in 2021 in Oregon counties compared to other states. The treatment effect shows a 80.39 decrease in overdose deaths compared to the control group and is statistically significant (p < 0.001). The fixed effects for years 2019 onwards are statistically signifcant, which indicate a time trend. 
 
 ```{r results="hide" }
 # Create a DiD variable
@@ -225,6 +223,8 @@ summary(did_model_county)
 ```
 
 ### Synthetic Control 
+A synthetic control analysis was conducted using Washington and Oregon as donor states. This analysis has significant limitations due to the lack of donor states and potential lack of credible covariates. 
+
 ```{r results="hide"}
 #Synthetic Control
 
