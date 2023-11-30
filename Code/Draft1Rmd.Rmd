@@ -13,8 +13,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 library(tidyverse)
 library(ggplot2)
-source("Functions.R")
-
+library(Synth)
 
 url <- c("https://raw.githubusercontent.com/mardimardimardi/ECNS_460_TopicData/main/Data/Cleaned%20Data/CleanedStateHealthRankings/MergedAllCountyRanks.csv")
 # Read csv
@@ -22,7 +21,7 @@ data <- read.csv(url)
 
 # Remove 2023- 2023 is a duplicate of 2022 for much of the data
 health_ranking <- data %>%
-  filter(year <= 2023) %>%
+  filter(year <= 2022) %>%
   filter(! (county %in% c("year_state_total")))
 
 ```
@@ -91,6 +90,31 @@ data2 |>
 
 ```
 
+
+``` {r}
+# Show deaths per-capita for each state
+data2 <- health_ranking |>
+  mutate(od_deaths_percapita = combined_overdose_deaths / population)
+
+# All states and overdose death per-capita for years 2016, 2020, 2023
+data2 |>
+  filter(year %in% c(2016, 2018, 2020, 2023) & !is.na(od_deaths_percapita)) |>
+  ggplot(aes(od_deaths_percapita, y = after_stat(count), fill = state)) +
+  scale_x_continuous(
+    trans = "log10",
+    labels = scales::label_number(scale = 1e6, suffix = "M")  # Adjust scale based on your data
+  ) +
+  geom_density(alpha = 0.3, position = "stack") +
+  facet_grid(year ~ .) +
+  labs(
+    title = "Density Plot of Overdose Deaths Per Capita by State",
+    x = "Overdose Deaths Per Capita",
+    y = "Count of Overdose Deaths",
+    fill = "State"
+  )
+
+```
+
 ```{r}
 #Create individual data sets for Oregon, Washington, and California
 or_health_ranking <- health_ranking[health_ranking$state == "Oregon",]
@@ -112,7 +136,9 @@ ggplot()+
   theme_bw()
 ```
 
-Comparing the rate of drug mortality by county depicts increases in many counties in every state we are examining. 
+
+
+Comparing the rate of drug mortality by county depicts increases in many counties in all three states we are examining. 
 
 ```{r Cleveland dot plots, fig.height=5, fig.width=8}
 
@@ -159,6 +185,7 @@ health_ranking_WA %>%
 # California 
 # Save the ggplot to a variable
 
+
 health_ranking_CA %>%
   filter(year %in% c(2016, 2020, 2023) & !is.na(combined_overdose_mortality_rate)) %>%
   mutate(county = reorder(county, combined_overdose_mortality_rate)) %>%
@@ -174,13 +201,107 @@ health_ranking_CA %>%
 ```
 
 
-### Methods 
+## Methods 
+
+## Difference-in-Difference 
+We used a difference-in-difference regression with fixed effects to investigate the impact of drug decriminalization in Oregon counties compared to other states.
+
+```{r results="hide" }
+# Create a DiD variable
+did_data <- health_ranking |>
+  mutate(treatment = ifelse(state == "Oregon" & year >= 2021, 1, 0))
+
+# Fit the DiD model using year and county fixed effects and population as a covariate 
+did_model_county <- lm(combined_overdose_deaths ~ treatment + factor(county) + factor(year) + treatment:factor(year) + population, data = did_data)
+summary(did_model_county)
 
 
+```
+
+
+### Synthetic Control 
+```{r results="hide"}
+#Synthetic Control
+
+#Create indivdual data sets for Oregon, Washington, and California
+or_health_ranking <- health_ranking[health_ranking$state == "Oregon",]
+ca_health_ranking <- health_ranking[health_ranking$state == "California",]
+wa_health_ranking <- health_ranking[health_ranking$state == "Washington",]
+
+
+healthrank_to_yearly <- function(df){
+  df <- df[!df$county == "year_state_total",]
+  df <- df %>%
+    group_by(year) %>%
+    summarise(across(where(is.numeric), ~ mean(., na.rm = TRUE))) %>%
+    select(-c("X", "fips"))
+  return(df)
+}
+
+#Now create yearly averages for the states from the healthrank_to_yearly function from Functions.R:
+or_yearly <- healthrank_to_yearly(or_health_ranking)
+ca_yearly <- healthrank_to_yearly(ca_health_ranking)
+wa_yearly <- healthrank_to_yearly(wa_health_ranking)
+
+
+#The three states follow trends mostly closely (Relative to each scale)- Good fit for synthetic control
+
+#Create state number variables to use for synthetic control
+health_ranking$state_num <- ifelse(health_ranking$state == "Oregon", 1, 2)
+
+health_ranking$state_num <- ifelse(health_ranking$state == "Oregon", 1,
+                                   ifelse(health_ranking$state == "California", 2, 3))
+
+#Lets create long data set for each year- for the synth package
+#Add the state numbers and states to the yearly data sets
+or_yearly$state_num <- 1
+or_yearly$X.1 <- "Oregon"
+ca_yearly$state_num <- 2
+ca_yearly$X.1 <- "California"
+wa_yearly$state_num <- 3
+wa_yearly$X.1 <- "Washington"
+
+#Join the three yearly data sets by row
+health_ranking_yearly <- rbind(rbind(or_yearly, ca_yearly), wa_yearly)
+health_ranking_yearly <- as.data.frame(health_ranking_yearly) #for synth package purposes
+
+
+#Run a synthetic control with the predictor variable being combined overdose deaths. The two states Washington and 
+#California will serve as the donor pool states. Variables used will be smokers, percent fair or poor health, excessive drinking, and unemployed.
+#The training data will be from 2016-2020, with 2021 and 2022 being the treatment outcomes section.
+dataprep.out <-
+  dataprep(health_ranking_yearly,
+           predictors = c("smokers", "percent_fair_or_poor_health", "excessive_drinking"),
+           dependent = "combined_overdose_deaths",
+           unit.variable = "state_num",
+           time.variable = "year",
+           unit.names.variable = "X.1",
+           treatment.identifier = 1,
+           controls.identifier = c(2,3),
+           time.predictors.prior = c(2016:2020),
+           time.optimize.ssr = c(2016:2020),
+           time.plot = 2016:2022,
+  )
+
+synth.out <- synth(dataprep.out)
+print(synth.tables <- synth.tab(
+  dataprep.res = dataprep.out,
+  synth.res = synth.out)
+)
+
+#Create a plot of pre and post treatment
+path.plot(synth.res = synth.out,
+          dataprep.res = dataprep.out,
+          Ylab = c("Y"),
+          Xlab = c("Year"),
+          Legend = c("Oregon", "Synthetic Oregon"),
+          Legend.position = c("topleft")
+)
+
+```
 
 ### Results
-Decriminalizing drugs in Oregon has slowed the increase in drug overdose deaths.
-
+Decriminalizing drugs in Oregon has slowed the increase in drug overdose deaths. 
 
 
 ### Limitations 
