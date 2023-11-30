@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = FALSE)
 library(tidyverse)
 library(ggplot2)
 library(Synth)
+source("Functions.R")
 
 url <- c("https://raw.githubusercontent.com/mardimardimardi/ECNS_460_TopicData/main/Data/Cleaned%20Data/CleanedStateHealthRankings/MergedAllCountyRanks.csv")
 # Read csv
@@ -133,6 +134,7 @@ ggplot()+
   geom_line(data = wa_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "Washington")) +
   scale_color_manual(name = "State",
                      values = c("Oregon" = "blue", "California" = "red", "Washington" = "green")) +
+  labs(y = "Log Combined Overdose Deaths")
   theme_bw()
 ```
 
@@ -215,9 +217,12 @@ did_data <- health_ranking |>
 did_model_county <- lm(combined_overdose_deaths ~ treatment + factor(county) + factor(year) + treatment:factor(year) + population, data = did_data)
 summary(did_model_county)
 
-
 ```
 
+```{r results="hide"}
+or_yearly2 <- or_yearly
+or_yearly2$
+```
 
 ### Synthetic Control 
 ```{r results="hide"}

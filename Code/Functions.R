@@ -17,7 +17,7 @@ healthrank_to_yearly <- function(df){
   df <- df[!df$county == "year_state_total",]
   df <- df %>%
     group_by(year) %>%
-    summarise(across(where(is.numeric), ~ mean(., na.rm = TRUE))) %>%
+    summarise(across(where(is.numeric), ~ sum(., na.rm = TRUE))) %>%
     select(-c("X", "fips"))
   return(df)
 }
