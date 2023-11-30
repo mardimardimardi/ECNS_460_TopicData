@@ -6,6 +6,9 @@ source("Code/Functions.R")
 
 library(tidyverse)
 library(ggplot2)
+library(broom)
+library(huxtable)
+library(jtools)
 
 health_ranking <- read.csv("Data/Cleaned Data/CleanedStateHealthRankings/MergedAllCountyRanks.csv")
 
@@ -232,3 +235,29 @@ did_data <- health_ranking |>
 # Fit the DiD model using year and county fixed effects and population as a covariate
 did_model_county <- lm(combined_overdose_deaths ~ treatment + factor(county) + factor(year) + treatment:factor(year) + population, data = did_data)
 summary(did_model_county)
+
+#******Make a Table to Show DiD output
+# Get coefficients, standard errors, and p-values
+coefficients_to_display <- coef(summary(did_model_county))[c("(Intercept)", "treatment", "population"), c("Estimate", "Std. Error", "Pr(>|t|)")]
+
+# Create a data frame for the coefficients
+coefficients_df <- as.data.frame(coefficients_to_display)
+
+# Round coefficients to 2 decimal places
+rounded_coefficients <- round(coefficients_df, 3)
+
+# Increase decimals for p-values
+rounded_coefficients$`Pr(>|t|)` <- format(rounded_coefficients$`Pr(>|t|)`, nsmall = 6)  # Increase to desired number of decimals
+
+# Format large numbers with commas
+formatted_coefficients <- format(rounded_coefficients, big.mark = ",")
+
+# Display the formatted coefficients using kable with additional formatting
+kable(
+  formatted_coefficients,
+  format = "markdown",
+  align = c("l", "c", "c", "c"),  # Adjust alignment as needed
+  col.names = c("Variable", "Coefficient", "Std. Error", "P-value"),  # Rename column headers
+  caption = "Regression Coefficients",  # Add a caption
+  escape = FALSE  # Disable HTML escaping for formatting
+)
