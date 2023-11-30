@@ -127,16 +127,15 @@ or_yearly <- healthrank_to_yearly(or_health_ranking)
 ca_yearly <- healthrank_to_yearly(ca_health_ranking)
 wa_yearly <- healthrank_to_yearly(wa_health_ranking)
 
-combined_yearly <- healthrank_to_yearly(health_ranking)
-
 
 ggplot() +
   geom_line(data = or_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "Oregon")) +
   geom_line(data = ca_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "California")) +
   geom_line(data = wa_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "Washington")) +
-  geom_point(data = or_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "Oregon"), size = 1) +
-  geom_point(data = ca_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "California"), size = 1) +
-  geom_point(data = wa_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "Washington"), size = 1) +
+  geom_point(data = or_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "Oregon"), size = 3) +
+  geom_point(data = ca_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "California"), size = 3) +
+  geom_point(data = wa_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "Washington"), size = 3) +
+  geom_vline(xintercept = as.numeric("2021"), linetype = "dashed", color = "black", size = 1) +
   scale_color_manual(name = "State",
                      values = c("Oregon" = "blue", "California" = "red", "Washington" = "green")) +
   labs(y = "Log Combined Overdose Deaths") +
