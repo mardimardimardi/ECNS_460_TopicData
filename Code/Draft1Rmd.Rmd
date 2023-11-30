@@ -205,6 +205,8 @@ health_ranking_CA %>%
 
 ## Methods 
 
+
+A synthetic control analysis was conducted using Washington and Oregon as donor states. This analysis has significant limitations due to the lack of donor states and potential lack of credible covariates.
 ## Difference-in-Difference 
 We used a difference-in-difference regression with fixed effects to investigate the impact of drug decriminalization in Oregon counties compared to other states.
 
@@ -217,11 +219,6 @@ did_data <- health_ranking |>
 did_model_county <- lm(combined_overdose_deaths ~ treatment + factor(county) + factor(year) + treatment:factor(year) + population, data = did_data)
 summary(did_model_county)
 
-```
-
-```{r results="hide"}
-or_yearly2 <- or_yearly
-or_yearly2$
 ```
 
 ### Synthetic Control 
@@ -306,6 +303,11 @@ path.plot(synth.res = synth.out,
 ```
 
 ### Results
+
+Due to the limitations surrounding our synthetic control analysis, our synthetic Oregon was higher than the actual Oregon pre treatment which should not have happened. This may be due to a lack of accurate covariates used. Our analysis shows synthetic Oregon increasing more than actual Oregon, however limitations have to be noted surrounding this conclusion.
+
+Diff in Diff:
+
 Decriminalizing drugs in Oregon has slowed the increase in drug overdose deaths. 
 
 
