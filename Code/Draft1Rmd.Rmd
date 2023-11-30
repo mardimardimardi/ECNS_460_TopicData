@@ -68,23 +68,23 @@ The data collected was generally in clean condition. Some column name changes we
 
 Initial findings include general decrease in well being, after 2020 which is likely due to Covid-19. Well-being variables include, mental health days, fair or poor health days, excessive drinking, and income. Additionally, drug overdose deaths have been increasing, especially since 2020. However, it appears that Oregon's increase may be slower relative to Washington and Oregon after decriminalizing drugs.
 
-We compared the parallel trends of overdose deaths per-capita in all states. Pre-treatment shows (2016-2020) shows 
+We compared the parallel trends of overdose deaths per-capita in all states using stacked kernel density plots. Pre-treatment shows (2016-2020) fairly similar trends, especially in Oregon and Washington. California has the highest proportion of overdoses in all years.
 
 
-``` {r warnings = FALSE}
+
+``` {r warnings = FALSE, fig.height=5, fig.width= 10 }
 # Show deaths per-capita for each state
 data2 <- health_ranking |>
   mutate(od_deaths_percapita = combined_overdose_deaths / population)
 
-# All states and overdose death per-capita for years 2016, 2020, 2023
 data2 |>
-  filter(year %in% c(2016, 2018, 2020, 2023) & !is.na(od_deaths_percapita)) |>
+  filter(year %in% c(2016, 2018, 2020, 2022) & !is.na(od_deaths_percapita)) |>
   ggplot(aes(od_deaths_percapita, y = after_stat(count), fill = state)) +
   scale_x_continuous(
     trans = "log10",
     labels = scales::label_number(scale = 1e6, suffix = "M")  # Adjust scale based on your data
   ) +
-  geom_density(alpha = 0.3, position = "stack", linetype = "solid", size = 1) +  # Use linewidth instead of size
+  geom_density(alpha = 0.3, position = "stack", linetype = "solid", linewidth = 1) +  # Use linewidth instead of size
   facet_grid(year ~ .) +
   labs(
     title = "Density Plot of Overdose Deaths Per Capita by State",
