@@ -16,9 +16,13 @@ library(ggplot2)
 library(Synth)
 source("Functions.R")
 
-url <- c("https://raw.githubusercontent.com/mardimardimardi/ECNS_460_TopicData/main/Data/Cleaned%20Data/CleanedStateHealthRankings/MergedAllCountyRanks.csv")
+# Replace 'your/path/to/directory' with the actual path to your desired working directory
+setwd("your/path/to/directory")
+
+# Change file path name to your directory
+file_path <- c("project/cleaned/MergedAllCountyRanks2.csv")
 # Read csv
-data <- read.csv(url)
+data <- read.csv(file_path)
 
 # Remove 2023- 2023 is a duplicate of 2022 for much of the data
 health_ranking <- data %>%
@@ -67,7 +71,7 @@ Initial findings include general decrease in well being, after 2020 which is lik
 We compared the parallel trends of overdose deaths per-capita in all states. Pre-treatment shows (2016-2020) shows 
 
 
-``` {r}
+``` {r warnings = FALSE}
 # Show deaths per-capita for each state
 data2 <- health_ranking |>
   mutate(od_deaths_percapita = combined_overdose_deaths / population)
@@ -80,14 +84,15 @@ data2 |>
     trans = "log10",
     labels = scales::label_number(scale = 1e6, suffix = "M")  # Adjust scale based on your data
   ) +
-  geom_density(alpha = 0.3, position = "stack") +
+  geom_density(alpha = 0.3, position = "stack", linetype = "solid", size = 1) +  # Use linewidth instead of size
   facet_grid(year ~ .) +
   labs(
     title = "Density Plot of Overdose Deaths Per Capita by State",
     x = "Overdose Deaths Per Capita",
     y = "Count of Overdose Deaths",
     fill = "State"
-  )
+  ) +
+  theme_minimal()  # Customize the theme if needed
 
 ```
 
