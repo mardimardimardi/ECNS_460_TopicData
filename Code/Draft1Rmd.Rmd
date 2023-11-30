@@ -14,6 +14,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE)
 library(tidyverse)
 library(ggplot2)
 library(Synth)
+library(knitr)
 source("Functions.R")
 
 # Replace 'your/path/to/directory' with the actual path to your desired working directory
@@ -68,11 +69,11 @@ The data collected was generally in clean condition. Some column name changes we
 
 Initial findings include general decrease in well being, after 2020 which is likely due to Covid-19. Well-being variables include, mental health days, fair or poor health days, excessive drinking, and income. Additionally, drug overdose deaths have been increasing, especially since 2020. However, it appears that Oregon's increase may be slower relative to Washington and Oregon after decriminalizing drugs.
 
-We compared the parallel trends of overdose deaths per-capita in all states using stacked kernel density plots. Pre-treatment shows (2016-2020) fairly similar trends, especially in Oregon and Washington. California has the highest proportion of overdoses in all years.
+We compared the parallel trends of overdose deaths per-capita in all states using stacked kernel density plots. Pre-treatment shows (2016-2020) fairly similar trends, especially in Oregon and Washington. California has the highest proportion of overdoses in all years. 
 
 
 
-``` {r warnings = FALSE, fig.height=5, fig.width= 10 }
+``` {r warnings = FALSE, fig.height=6, fig.width= 10 }
 # Show deaths per-capita for each state
 data2 <- health_ranking |>
   mutate(od_deaths_percapita = combined_overdose_deaths / population)
@@ -94,34 +95,14 @@ data2 |>
   ) +
   theme_minimal()  # Customize the theme if needed
 
-```
-
-
-``` {r}
-# Show deaths per-capita for each state
-data2 <- health_ranking |>
-  mutate(od_deaths_percapita = combined_overdose_deaths / population)
-
-# All states and overdose death per-capita for years 2016, 2020, 2023
-data2 |>
-  filter(year %in% c(2016, 2018, 2020, 2023) & !is.na(od_deaths_percapita)) |>
-  ggplot(aes(od_deaths_percapita, y = after_stat(count), fill = state)) +
-  scale_x_continuous(
-    trans = "log10",
-    labels = scales::label_number(scale = 1e6, suffix = "M")  # Adjust scale based on your data
-  ) +
-  geom_density(alpha = 0.3, position = "stack") +
-  facet_grid(year ~ .) +
-  labs(
-    title = "Density Plot of Overdose Deaths Per Capita by State",
-    x = "Overdose Deaths Per Capita",
-    y = "Count of Overdose Deaths",
-    fill = "State"
-  )
 
 ```
 
-```{r}
+
+There is an increase in overdose deaths in all states after 2020, which is most likely due to the Covid-19 pandemic. The policy intervention was implemented in Oregon in 2021, and while the drug overdose rates are still increasing, Oregon appears to be increasing at a slightly slower rate than Washington and Oregon. 
+
+
+```{r fig.height=5, fig.width= 10}
 #Create individual data sets for Oregon, Washington, and California
 or_health_ranking <- health_ranking[health_ranking$state == "Oregon",]
 ca_health_ranking <- health_ranking[health_ranking$state == "California",]
@@ -142,13 +123,13 @@ ggplot() +
   geom_point(data = wa_yearly, aes(x = year, y = log(combined_overdose_deaths), color = "Washington"), size = 3) +
   geom_vline(xintercept = as.numeric("2021"), linetype = "dashed", color = "black", size = 1) +
   scale_color_manual(name = "State",
-                     values = c("Oregon" = "blue", "California" = "red", "Washington" = "green")) +
+                     values = c("Oregon" = "green", "California" = "red", "Washington" = "blue")) +
   labs(y = "Log Combined Overdose Deaths") +
   theme_bw()
 ```
-```
 
-Comparing the rate of drug mortality by county depicts increases in many counties in all three states we are examining. 
+
+Comparing the rate of drug mortality by county depicts increases after 2020 in many counties with noticeable increases in 2022 for all three states we are examining. 
 
 ```{r Cleveland dot plots, fig.height=5, fig.width=8}
 
@@ -168,7 +149,7 @@ health_ranking_CA <- health_ranking |>
 
 # Oregon
 health_ranking_OR %>%
-  filter(year %in% c(2016, 2020, 2023) & !is.na(combined_overdose_mortality_rate)) %>%
+  filter(year %in% c(2016, 2020, 2022) & !is.na(combined_overdose_mortality_rate)) %>%
   mutate(county = reorder(county, combined_overdose_mortality_rate)) %>%
   ggplot(aes(combined_overdose_mortality_rate, county)) +
   geom_line(aes(group = county)) +
@@ -180,7 +161,7 @@ health_ranking_OR %>%
 
 # Washington
 health_ranking_WA %>%
-  filter(year %in% c(2016, 2020, 2023) & !is.na(combined_overdose_mortality_rate)) %>%
+  filter(year %in% c(2016, 2020, 2022) & !is.na(combined_overdose_mortality_rate)) %>%
   mutate(county = reorder(county, combined_overdose_mortality_rate)) %>%
   ggplot(aes(combined_overdose_mortality_rate, county)) +
   geom_line(aes(group = county)) +
@@ -193,11 +174,9 @@ health_ranking_WA %>%
 
 ```{r CA Cleveland dot plots, fig.height=7, fig.width=8}
 # California 
-# Save the ggplot to a variable
-
 
 health_ranking_CA %>%
-  filter(year %in% c(2016, 2020, 2023) & !is.na(combined_overdose_mortality_rate)) %>%
+  filter(year %in% c(2016, 2020, 2022) & !is.na(combined_overdose_mortality_rate)) %>%
   mutate(county = reorder(county, combined_overdose_mortality_rate)) %>%
   ggplot(aes(combined_overdose_mortality_rate, county)) +
   geom_line(aes(group = county)) +
@@ -211,10 +190,11 @@ health_ranking_CA %>%
 ```
 
 
-## Methods 
+## Methods and Results 
 
-## Difference-in-Difference 
-We used a difference-in-difference regression with fixed effects to investigate the impact of drug decriminalization starting in 2021 in Oregon counties compared to other states. The treatment effect shows a 80.39 decrease in overdose deaths compared to the control group and is statistically significant (p < 0.001). The fixed effects for years 2019 onwards are statistically signifcant, which indicate a time trend. 
+### Difference-in-Difference 
+We used a difference-in-difference regression with year and county fixed effects to investigate the impact of drug decriminalization starting in 2021 in Oregon counties compared to Washington and California. The treatment estimates  an average effect of a 80.39 decrease in overdose deaths compared to the control group and is statistically significant (p < 0.001). The fixed effects for years 2019 onwards are statistically significant, which indicate a trend over time. County specific fixed effects are included in the model, represented by the coefficients for each county. Counties like Los Angeles and Riverside have positive coefficients, indicating higher overdose deaths compared to the baseline county.
+
 
 ```{r results="hide" }
 # Create a DiD variable
@@ -227,8 +207,40 @@ summary(did_model_county)
 
 ```
 
+```{r results='asis'}
+library(tidyverse)
+library(broom)
+library(huxtable)
+library(jtools)
+# Get coefficients, standard errors, and p-values
+coefficients_to_display <- coef(summary(did_model_county))[c("(Intercept)", "treatment", "population"), c("Estimate", "Std. Error", "Pr(>|t|)")]
+
+# Create a data frame for the coefficients
+coefficients_df <- as.data.frame(coefficients_to_display)
+
+# Round coefficients to 2 decimal places
+rounded_coefficients <- round(coefficients_df, 3)
+
+# Increase decimals for p-values
+rounded_coefficients$`Pr(>|t|)` <- format(rounded_coefficients$`Pr(>|t|)`, nsmall = 6)  # Increase to desired number of decimals
+
+# Format large numbers with commas
+formatted_coefficients <- format(rounded_coefficients, big.mark = ",")
+
+# Display the formatted coefficients using kable with additional formatting
+kable(
+  formatted_coefficients,
+  format = "markdown",
+  align = c("l", "c", "c", "c"),  # Adjust alignment as needed
+  col.names = c("Variable", "Coefficient", "Std. Error", "P-value"),  # Rename column headers
+  caption = "Regression Coefficients",  # Add a caption
+  escape = FALSE  # Disable HTML escaping for formatting
+)
+
+```
+
 ### Synthetic Control 
-A synthetic control analysis was conducted using Washington and Oregon as donor states. This analysis has significant limitations due to the lack of donor states and potential lack of credible covariates. 
+A synthetic control analysis was conducted using Washington and California as donor states. This analysis has significant limitations due to the lack of donor states and potential lack of credible covariates.However, it does show that the synthetic "Oregon" with more overdose deaths if the policy intervention did not exist. 
 
 ```{r results="hide"}
 #Synthetic Control
@@ -309,16 +321,11 @@ path.plot(synth.res = synth.out,
 
 ```
 
-### Results
-
-Due to the limitations surrounding our synthetic control analysis, our synthetic Oregon was higher than the actual Oregon pre treatment which should not have happened. This may be due to a lack of accurate covariates used. Our analysis shows synthetic Oregon increasing more than actual Oregon, however limitations have to be noted surrounding this conclusion.
-
-Diff in Diff:
-
-Decriminalizing drugs in Oregon has slowed the increase in drug overdose deaths. 
-
 
 ### Limitations 
-Oregon drug decriminilization has recently went into effect. The data for overdose deaths after the law has been enacted is limited with only 2021 and 2022. 
-It is a challenge to find a single cause for an impact on drug decriminalization and its relationship to drug overdose deaths. Since multiple factors can contribute to drug-related outcomes. There has been some evidence linked to the Covid-19 pandemic contributing to drug use, well-being, and mental health. There is limited generalizability to this study as findings from synthetic control analysis are specific to the context of Oregon drug policies and may not be generalized to other regions or policies. There is also limited data post treatment period (2 years). Additionally, the synthetic Oregon may not be a good fit. 
+Oregon drug decriminalization has just recently gone into effect. The data for overdose deaths after the law has been enacted is limited with only 2021 and 2022. It is a challenge to find a single cause for an impact on drug decriminalization and its relationship to drug overdose deaths. Since multiple factors can contribute to drug-related outcomes. There has been some evidence linked to the Covid-19 pandemic contributing to drug use, well-being, and mental health. 
+
+There is also limited data post treatment period (2 years). Difference-in-Differences (DiD) estimates, particularly with fixed effects, are context-specific and may lack generalizability beyond the studied time period and treatment group.The validity of DiD estimates relies on the assumption of parallel trends in the absence of treatment. While fixed effects enhance internal validity, they may limit generalizability to settings with different characteristics.
+
+Similarly, the synthetic control analysis is specific to the context of Oregon drug policies and may not be generalized to other regions or policies. There is also limited data post treatment period (2 years). Further analysis could be done using all 50 states to find a model that best fits a synthetic Oregon.
 
