@@ -144,8 +144,6 @@ ggplot() +
 ```
 ```
 
-
-
 Comparing the rate of drug mortality by county depicts increases in many counties in all three states we are examining. 
 
 ```{r Cleveland dot plots, fig.height=5, fig.width=8}
@@ -290,7 +288,6 @@ dataprep.out <-
            time.optimize.ssr = c(2016:2020),
            time.plot = 2016:2022,
   )
-
 synth.out <- synth(dataprep.out)
 print(synth.tables <- synth.tab(
   dataprep.res = dataprep.out,
@@ -318,5 +315,5 @@ Decriminalizing drugs in Oregon has slowed the increase in drug overdose deaths.
 
 
 ### Limitations 
-It is a challenge to find a single cause for an impact on drug decriminalization and its relationship to drug overdose deaths. Since multiple factors can contribute to drug-related outcomes. There has been some evidence linked to the Covid-19 pandemic contributing to drug use, well-being, and mental health. There is limited generalizability to this study as findings from synthetic control analysis are specific to the context of Oregon drug policies and may not be generalized to other regions or policies. There is also limited data post treatment period (2 years). Additionally, the synthetic Oregon may not be a good fit. This will be further analyzed throughout the semester. As well as continuing to fully understand the statistical basis for synthetic control better.
+It is a challenge to find a single cause for an impact on drug decriminalization and its relationship to drug overdose deaths. Since multiple factors can contribute to drug-related outcomes. There has been some evidence linked to the Covid-19 pandemic contributing to drug use, well-being, and mental health. There is limited generalizability to this study as findings from synthetic control analysis are specific to the context of Oregon drug policies and may not be generalized to other regions or policies. There is also limited data post treatment period (2 years). Additionally, the synthetic Oregon may not be a good fit. 
 
